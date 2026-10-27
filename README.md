@@ -6,7 +6,11 @@ Stavitel PC, srovnávač cen a kontrola kompatibility pro český trh (React + V
     npm install
     npm run dev
 
-## Nasazení na GitHub Pages
+## Nasazení na GitHub Pages (hotový build ve složce `docs/`)
+Settings → Pages → Source: **Deploy from a branch** → `main` → `/docs` → Save.
+Po úpravách kódu: `npm install && npm run build:docs`, pak commit a push.
+
+### Alternativa: GitHub Actions (ruční spuštění)
 1. Nahraj repozitář na GitHub (větev `main`).
 2. Settings → Pages → Source: **GitHub Actions**.
 3. Každý push na `main` spustí `.github/workflows/deploy.yml`.
