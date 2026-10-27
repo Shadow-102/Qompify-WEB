@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import GradientASCII from './GradientASCII.jsx';
-import { CATS, PARTS, BY, dn, TIERS, SEEDS, GAMES, offers, best, fmt, spec, check, power, rec } from './data.js';
+import { CATS, PARTS, BY, SPEC, showVal, perf, dn, TIERS, SEEDS, GAMES, offers, best, fmt, spec, check, power, rec } from './data.js';
 import logo from './assets/logo.png';
 
 const NAV = [['builder', 'Stavitel PC'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['komunita', 'Komunita']];
@@ -60,7 +60,7 @@ function Share({ ids, title, copy }) {
   );
 }
 
-function Sheet({ cat, sel, onClose, onPick }) {
+function Sheet({ cat, sel, onClose, onPick, ui }) {
   const [sort, setSort] = useState('rec');
   useEffect(() => { const f = e => e.key === 'Escape' && onClose(); addEventListener('keydown', f); return () => removeEventListener('keydown', f); }, [onClose]);
   const list = useMemo(() => {
@@ -92,6 +92,7 @@ function Sheet({ cat, sel, onClose, onPick }) {
                 <span><b>{dn(p)}</b><small>{spec(p)}</small>{bad && <small className="why">Nekompatibilní: {bad.t}</small>}</span>
                 <span className="pp">{isRec && <em className="tag">Doporučujeme</em>}<b>{fmt(pr)}</b></span>
               </button>
+              <div className="tools"><button onClick={() => ui.show([p.id])}>Detail</button><button className={ui.cmp.includes(p.id) ? 'on' : ''} onClick={() => ui.toggle(p.id)}>Porovnat</button></div>
             </li>
           ))}
         </ul>
@@ -100,7 +101,7 @@ function Sheet({ cat, sel, onClose, onPick }) {
   );
 }
 
-function Builder({ sel, setSel, add, save, copy }) {
+function Builder({ sel, setSel, add, save, copy, ui }) {
   const [pick, setPick] = useState(null), [focus, setFocus] = useState(null), [name, setName] = useState('');
   const o = objs(sel), res = check(o), draw = power(o), tot = total(sel), n = useTween(tot), ids = Object.values(sel);
   const fp = BY[focus] || BY[ids[ids.length - 1]];
@@ -153,7 +154,7 @@ function Builder({ sel, setSel, add, save, copy }) {
           </section>
         </aside>
       </div>
-      <Sheet cat={pick} sel={sel} onClose={() => setPick(null)} onPick={id => { add(id); setFocus(id); setPick(null); }} />
+      <Sheet ui={ui} cat={pick} sel={sel} onClose={() => setPick(null)} onPick={id => { add(id); setFocus(id); setPick(null); }} />
     </>
   );
 }
@@ -190,8 +191,8 @@ function Tiers({ go, save }) {
   );
 }
 
-function Catalog({ add, say }) {
-  const [cat, setCat] = useState('all'), [q, setQ] = useState(''), [max, setMax] = useState(70000), [stock, setStock] = useState(false);
+function Catalog({ add, say, ui }) {
+  const [cat, setCat] = useState('all'), [q, setQ] = useState(''), [max, setMax] = useState(80000), [stock, setStock] = useState(false);
   const [vram, setVram] = useState(0), [tdp, setTdp] = useState(0), [pc, setPc] = useState(0), [open, setOpen] = useState(null);
   const list = useMemo(() => PARTS.filter(p => {
     const pr = best(p).price, g = p.pcie ?? p.pc;
@@ -206,7 +207,7 @@ function Catalog({ add, say }) {
         <div className="chips">{[['all', 'Vše'], ...CATS].map(([c, l]) => <button key={c} className={cat === c ? 'on' : ''} onClick={() => setCat(c)}>{l}</button>)}</div>
         <div className="frow">
           <label>Hledat<input value={q} onChange={e => setQ(e.target.value)} placeholder="např. RTX, Ryzen, 1 TB" /></label>
-          <label>Cena do {fmt(max)}<input type="range" min={1000} max={70000} step={500} value={max} onChange={e => setMax(+e.target.value)} /></label>
+          <label>Cena do {fmt(max)}<input type="range" min={1000} max={80000} step={500} value={max} onChange={e => setMax(+e.target.value)} /></label>
           {sel(vram, setVram, 'VRAM od', [[8, '8 GB'], [12, '12 GB'], [16, '16 GB'], [32, '32 GB']])}
           {sel(tdp, setTdp, 'TDP do', [[65, '65 W'], [125, '125 W'], [200, '200 W'], [320, '320 W']])}
           {sel(pc, setPc, 'PCIe od', [[3, '3.0'], [4, '4.0'], [5, '5.0']])}
@@ -217,9 +218,9 @@ function Catalog({ add, say }) {
       <ul className="catalog">
         {list.map(p => (
           <li key={p.id} className="card part">
-            <div className="ph"><span className="muted">{LBL[p.cat]}</span><b>{dn(p)}</b><small>{spec(p)}</small></div>
+            <div className="ph"><span className="muted">{LBL[p.cat]} · {p.v ? 'ověřená cena' : 'odhad ceny'}</span><b>{dn(p)}</b><small>{spec(p)}</small></div>
             <div className="pr"><b>{fmt(best(p).price)}</b><span className="muted">nejnižší cena</span></div>
-            <div className="actions"><button className="btn" onClick={() => { add(p.id); say(`${p.name} přidán do stavitele`); }}>Do sestavy</button><button className="ghost" onClick={() => setOpen(open === p.id ? null : p.id)}>{open === p.id ? 'Skrýt ceny' : 'Porovnat ceny'}</button></div>
+            <div className="actions"><button className="btn" onClick={() => { add(p.id); say(`${p.name} přidán do stavitele`); }}>Do sestavy</button><button className="ghost" onClick={() => setOpen(open === p.id ? null : p.id)}>{open === p.id ? 'Skrýt ceny' : 'Ceny'}</button><button className="ghost" onClick={() => ui.show([p.id])}>Detail</button><button className={`ghost${ui.cmp.includes(p.id) ? ' on' : ''}`} onClick={() => ui.toggle(p.id)}>Porovnat</button></div>
             {open === p.id && <Offers p={p} />}
           </li>
         ))}
@@ -258,6 +259,39 @@ function Community({ saved, persist, go, copy }) {
   );
 }
 
+function Compare({ ids, sel, add, say, onClose }) {
+  const ps = ids.map(i => BY[i]), cat = ps[0].cat, rows = SPEC[cat], o = objs(sel), cur = o[cat], multi = ps.length > 1;
+  useEffect(() => { const f = e => e.key === 'Escape' && onClose(); addEventListener('keydown', f); return () => removeEventListener('keydown', f); }, [onClose]);
+  const win = (k, d) => { if (!d || !multi) return -1; const v = ps.map(p => p[k]); if (v.some(x => typeof x !== 'number') || new Set(v).size === 1) return -1; return v.indexOf(d > 0 ? Math.max(...v) : Math.min(...v)); };
+  const info = ps.map(p => { const res = check({ ...o, [cat]: p }), pr = best(p).price, pf = perf(p); return { p, pr, pf, vpm: pf ? (pf / pr) * 1000 : 0, bad: res.filter(r => r.l === 'bad'), warn: res.filter(r => r.l === 'warn') }; });
+  const top = (f, hi) => info.reduce((x, y) => ((hi ? f(y) > f(x) : f(y) < f(x)) ? y : x));
+  const cheap = top(i => i.pr, false), fast = info.some(i => i.pf) ? top(i => i.pf, true) : null, val = info.some(i => i.vpm) ? top(i => i.vpm, true) : null;
+  const mine = Object.keys(sel).length;
+  return (
+    <div className="mwrap" role="dialog" aria-label="Detail a porovnání">
+      <div className="scrim" onClick={onClose} />
+      <div className="modal">
+        <header><h2>{multi ? `Porovnání: ${LBL[cat]}` : 'Detail dílu'}</h2><button className="ghost" onClick={onClose}>Zavřít</button></header>
+        {multi && <ul className="verdict"><li>Nejlevnější: <b>{dn(cheap.p)}</b></li>{fast && <li>Nejvyšší výkon: <b>{dn(fast.p)}</b></li>}{val && <li>Nejlepší cena/výkon: <b>{dn(val.p)}</b></li>}</ul>}
+        <div className="tw"><table>
+          <thead><tr><th />{info.map(i => <th key={i.p.id}>{dn(i.p)}<small>{i.p.v ? 'Ověřená cena (CZ e-shopy, 10/2026)' : 'Orientační cena'}</small></th>)}</tr></thead>
+          <tbody>
+            <tr><td>Nejnižší cena</td>{info.map(i => <td key={i.p.id} className={multi && i === cheap ? 'win' : ''}><b>{fmt(i.pr)}</b></td>)}</tr>
+            {rows.map(([k, l, u, d]) => { const w = win(k, d); return <tr key={k}><td>{l}</td>{ps.map((p, j) => <td key={p.id} className={w === j ? 'win' : ''}>{showVal(p[k], u)}</td>)}</tr>; })}
+            <tr className="for"><td>Pro tvou sestavu</td>{info.map(i => (
+              <td key={i.p.id}>
+                {i.bad.length ? <span className="bad">Nekompatibilní: {i.bad.map(b => b.t).join('; ')}</span> : i.warn.length ? <span>Sedí, ale: {i.warn.map(b => b.t).join('; ')}</span> : <span>{mine ? 'Sedí do tvé sestavy.' : 'Sestava je zatím prázdná, nic k ověření.'}</span>}
+                {cur && cur.id !== i.p.id && <small>{i.pr - best(cur).price >= 0 ? '+' : ''}{fmt(i.pr - best(cur).price)} oproti {dn(cur)}{i.pf && perf(cur) ? `, výkon ${i.pf >= perf(cur) ? '+' : ''}${Math.round((i.pf / perf(cur) - 1) * 100)} %` : ''}</small>}
+              </td>))}</tr>
+            <tr><td>Ceny v obchodech</td>{ps.map(p => <td key={p.id}><Offers p={p} /></td>)}</tr>
+            <tr><td /> {ps.map(p => <td key={p.id}><button className="btn" onClick={() => { add(p.id); say(`${p.name} přidán do stavitele`); onClose(); }}>Do sestavy</button></td>)}</tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+  );
+}
+
 function Footer() {
   return (
     <footer className="foot">
@@ -291,6 +325,9 @@ export default function App() {
   const copy = async (text, msg) => { try { await navigator.clipboard.writeText(text); say(msg); } catch { say('Kopírování se nepovedlo'); } };
   const save = (name, s) => { persist([{ id: Date.now(), name: name || 'Moje sestava', ids: Object.values(s), at: new Date().toLocaleDateString('cs-CZ') }, ...saved]); say('Sestava uložena'); };
   const add = id => setSel(s => ({ ...s, [BY[id].cat]: id }));
+  const [cmp, setCmp] = useState([]), [view, setView] = useState(null);
+  const toggle = id => setCmp(c => (c.includes(id) ? c.filter(x => x !== id) : c.length && BY[c[0]].cat !== BY[id].cat ? [id] : [...c, id].slice(-3)));
+  const ui = { cmp, toggle, show: ids => setView(ids) };
   return (
     <>
       <div className="bg"><GradientASCII colors={['#3B66F5', '#F3EBDD', '#4A75FF', '#1E3FD8']} shape="horizon" characters=" =+xX0S8#@" lightMode={false} /></div>
@@ -300,10 +337,12 @@ export default function App() {
           <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <sup>{saved.length}</sup> : null}</a>)}</nav>
         </header>
         <main key={page} className="view">
-          {page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} />}
+          {page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} />}
         </main>
         <Footer />
       </div>
+      {view && <Compare ids={view} sel={sel} add={add} say={say} onClose={() => setView(null)} />}
+      {cmp.length > 0 && !view && <div className="tray"><span>Porovnání: {cmp.map(i => dn(BY[i])).join(' · ')}</span><button className="btn" disabled={cmp.length < 2} onClick={() => setView(cmp)}>Porovnat ({cmp.length})</button><button className="ghost" onClick={() => setCmp([])}>Zrušit</button></div>}
       <div className={`toast${toast ? ' on' : ''}`} role="status">{toast}</div>
     </>
   );

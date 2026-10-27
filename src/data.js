@@ -1,94 +1,141 @@
 export const CATS = [['cpu','Procesor'],['gpu','Grafická karta'],['ram','Paměť'],['mb','Základní deska'],['psu','Zdroj'],['case','Skříň'],['ssd','Úložiště']];
 export const GAMES = [['Cyberpunk 2077','1080p, vysoké'],['Counter-Strike 2','1080p, nízké'],['Fortnite','1080p, střední']];
-const P = (id, cat, name, brand, price, x) => ({ id, cat, name, brand, price, ...x });
+// Ceny: v=1 ověřeno na českých e-shopech (Datart / Zboží.cz, 10/2026), v=0 orientační odhad.
+const cpu = (id,name,brand,price,v,s,n,th,fb,f,l3,tdp,ig,pcie,mem,nm,sc) => ({id,cat:'cpu',name,brand,price,v,s,n,th,fb,f,l3,tdp,ig,pcie,mem,nm,sc});
+const gpu = (id,name,brand,price,v,vram,vt,bus,tdp,len,pcie,pw,rt,fps) => ({id,cat:'gpu',name,brand,price,v,vram,vt,bus,tdp,len,pcie,pw,rt,fps,sc:fps[0]});
+const ram = (id,name,brand,price,v,t,gb,mhz,cl,kit,exp,rgb) => ({id,cat:'ram',name,brand,price,v,t,gb,mhz,cl,kit,exp,rgb});
+const mb = (id,name,brand,price,v,s,t,ff,chip,m2,wifi,lan,pcie) => ({id,cat:'mb',name,brand,price,v,s,t,ff,chip,m2,wifi,lan,pcie});
+const psu = (id,name,brand,price,v,w,eff,atx3,mod,fan,pw12) => ({id,cat:'psu',name,brand,price,v,w,eff,atx3,mod,fan,pw12});
+const cs = (id,name,brand,price,v,mg,ff,ch,fans,glass,type) => ({id,cat:'case',name,brand,price,v,mg,ff,ch,fans,glass,type});
+const ssd = (id,name,brand,price,v,gb,pc,rd,wr,tbw,nand) => ({id,cat:'ssd',name,brand,price,v,gb,pc,rd,wr,tbw,nand});
 export const PARTS = [
-  P('r5-5600','cpu','Ryzen 5 5600','AMD',2990,{s:'AM4',c:'6/12',tdp:65,sc:62}),
-  P('r5-7600','cpu','Ryzen 5 7600','AMD',4990,{s:'AM5',c:'6/12',tdp:65,sc:76}),
-  P('r5-9600x','cpu','Ryzen 5 9600X','AMD',6490,{s:'AM5',c:'6/12',tdp:65,sc:85}),
-  P('r7-7800x3d','cpu','Ryzen 7 7800X3D','AMD',11490,{s:'AM5',c:'8/16',tdp:120,sc:100}),
-  P('r9-9950x','cpu','Ryzen 9 9950X','AMD',14990,{s:'AM5',c:'16/32',tdp:170,sc:112}),
-  P('i5-12400f','cpu','Core i5-12400F','Intel',3490,{s:'LGA1700',c:'6/12',tdp:65,sc:64}),
-  P('i5-14600kf','cpu','Core i5-14600KF','Intel',7990,{s:'LGA1700',c:'14/20',tdp:125,sc:90}),
-  P('i7-14700k','cpu','Core i7-14700K','Intel',10990,{s:'LGA1700',c:'20/28',tdp:125,sc:102}),
-  P('rx6600','gpu','Radeon RX 6600','Sapphire',4990,{vram:8,tdp:132,len:245,pcie:4,fps:[62,240,150]}),
-  P('arc-b580','gpu','Arc B580','Intel',6490,{vram:12,tdp:190,len:272,pcie:4,fps:[74,260,160]}),
-  P('rtx4060','gpu','GeForce RTX 4060','MSI',8490,{vram:8,tdp:115,len:240,pcie:4,fps:[78,300,180]}),
-  P('rx7600xt','gpu','Radeon RX 7600 XT','Gigabyte',8990,{vram:16,tdp:190,len:280,pcie:4,fps:[72,280,170]}),
-  P('rtx5060ti','gpu','GeForce RTX 5060 Ti 16GB','ASUS',12990,{vram:16,tdp:180,len:304,pcie:5,fps:[105,380,230]}),
-  P('rx9070xt','gpu','Radeon RX 9070 XT','Sapphire',16990,{vram:16,tdp:304,len:320,pcie:5,fps:[140,450,290]}),
-  P('rtx5070ti','gpu','GeForce RTX 5070 Ti','Gigabyte',21990,{vram:16,tdp:300,len:304,pcie:5,fps:[155,480,310]}),
-  P('rtx5080','gpu','GeForce RTX 5080','MSI',33990,{vram:16,tdp:360,len:304,pcie:5,fps:[190,560,380]}),
-  P('rtx5090','gpu','GeForce RTX 5090','ASUS',59990,{vram:32,tdp:575,len:336,pcie:5,fps:[260,700,480]}),
-  P('d4-16','ram','Kingston Fury 16 GB 3200','Kingston',1190,{t:'DDR4',gb:16}),
-  P('d4-32','ram','Corsair Vengeance 32 GB 3600','Corsair',2290,{t:'DDR4',gb:32}),
-  P('d5-16','ram','Kingston Fury Beast 16 GB 6000','Kingston',1990,{t:'DDR5',gb:16}),
-  P('d5-32','ram','G.Skill Ripjaws 32 GB 6000','G.Skill',3490,{t:'DDR5',gb:32}),
-  P('d5-32rgb','ram','Corsair Vengeance RGB 32 GB 6400','Corsair',3990,{t:'DDR5',gb:32}),
-  P('d5-64','ram','Kingston Fury 64 GB 6000','Kingston',6990,{t:'DDR5',gb:64}),
-  P('a520','mb','MSI A520M-A PRO','MSI',1890,{s:'AM4',t:'DDR4',ff:'mATX'}),
-  P('b550','mb','Gigabyte B550 Gaming X','Gigabyte',2990,{s:'AM4',t:'DDR4',ff:'ATX'}),
-  P('b650m','mb','ASRock B650M Pro RS','ASRock',3290,{s:'AM5',t:'DDR5',ff:'mATX'}),
-  P('b650','mb','MSI MAG B650 Tomahawk','MSI',4490,{s:'AM5',t:'DDR5',ff:'ATX'}),
-  P('x870e','mb','ASUS ROG Strix X870E-E','ASUS',9990,{s:'AM5',t:'DDR5',ff:'ATX'}),
-  P('b660m','mb','ASRock B660M Pro RS','ASRock',2790,{s:'LGA1700',t:'DDR4',ff:'mATX'}),
-  P('b760','mb','MSI PRO B760-P','MSI',3990,{s:'LGA1700',t:'DDR5',ff:'ATX'}),
-  P('z790','mb','Gigabyte Z790 Aorus Elite','Gigabyte',6990,{s:'LGA1700',t:'DDR5',ff:'ATX'}),
-  P('psu450','psu','Endorfy Vero L5 450 W','Endorfy',890,{w:450}),
-  P('psu550','psu','Endorfy Vero L5 Bronze 550 W','Endorfy',1190,{w:550}),
-  P('psu650','psu','Corsair RM650e 650 W','Corsair',1990,{w:650}),
-  P('psu750','psu','Seasonic Focus GX 750 W','Seasonic',2490,{w:750}),
-  P('psu850','psu','be quiet! Pure Power 12 M 850 W','be quiet!',3290,{w:850}),
-  P('psu1000','psu','MSI MPG A1000G 1000 W','MSI',4990,{w:1000}),
-  P('psu1200','psu','Corsair RM1200x 1200 W','Corsair',6490,{w:1200}),
-  P('c-mini','case','Endorfy Ventum 200','Endorfy',1090,{mg:300,ff:['mATX']}),
-  P('c-mid','case','Fractal Pop Air','Fractal',1690,{mg:405,ff:['mATX','ATX']}),
-  P('c-air','case','Fractal North','Fractal',2290,{mg:355,ff:['mATX','ATX']}),
-  P('c-lian','case','Lian Li Lancool 216','Lian Li',2990,{mg:392,ff:['mATX','ATX']}),
-  P('c-bq','case','be quiet! Pure Base 500DX','be quiet!',2490,{mg:369,ff:['mATX','ATX']}),
-  P('c-xl','case','Corsair 4000D Airflow','Corsair',2690,{mg:360,ff:['mATX','ATX']}),
-  P('ssd-500','ssd','Kingston NV3 500 GB','Kingston',990,{gb:500,pc:3}),
-  P('ssd-1t3','ssd','Kingston NV2 1 TB','Kingston',1590,{gb:1000,pc:3}),
-  P('ssd-1t4','ssd','WD Blue SN5100 1 TB','WD',1990,{gb:1000,pc:4}),
-  P('ssd-2t4','ssd','Samsung 990 EVO Plus 2 TB','Samsung',3490,{gb:2000,pc:4}),
-  P('ssd-2t5','ssd','Crucial T705 2 TB','Crucial',6490,{gb:2000,pc:5}),
-  P('ssd-4t4','ssd','WD Black SN850X 4 TB','WD',7490,{gb:4000,pc:4}),
+  cpu('i3-12100f','Core i3-12100F','Intel',2190,0,'LGA1700',4,8,3.3,4.3,12,58,0,5,'DDR4/DDR5',10,45),
+  cpu('r5-5600','Ryzen 5 5600','AMD',3090,1,'AM4',6,12,3.5,4.4,32,65,0,4,'DDR4',7,62),
+  cpu('i5-12400f','Core i5-12400F','Intel',3290,0,'LGA1700',6,12,2.5,4.4,18,65,0,5,'DDR4/DDR5',10,64),
+  cpu('i5-13400f','Core i5-13400F','Intel',4490,0,'LGA1700',10,16,2.5,4.6,20,65,0,5,'DDR4/DDR5',10,72),
+  cpu('r5-7600','Ryzen 5 7600','AMD',4590,0,'AM5',6,12,3.8,5.1,32,65,1,5,'DDR5',5,76),
+  cpu('r5-9600x','Ryzen 5 9600X','AMD',4990,1,'AM5',6,12,3.9,5.4,32,65,1,5,'DDR5',4,85),
+  cpu('r5-5700x3d','Ryzen 7 5700X3D','AMD',5490,0,'AM4',8,16,3.0,4.1,96,105,0,4,'DDR4',7,80),
+  cpu('r7-7700','Ryzen 7 7700','AMD',6290,0,'AM5',8,16,3.8,5.3,32,65,1,5,'DDR5',5,84),
+  cpu('i5-14600kf','Core i5-14600KF','Intel',7490,0,'LGA1700',14,20,3.5,5.3,24,125,0,5,'DDR4/DDR5',10,90),
+  cpu('r7-9700x','Ryzen 7 9700X','AMD',7490,0,'AM5',8,16,3.8,5.5,32,65,1,5,'DDR5',4,92),
+  cpu('u5-245k','Core Ultra 5 245K','Intel',6990,0,'LGA1851',14,14,4.2,5.2,24,125,1,5,'DDR5',3,92),
+  cpu('r7-7800x3d','Ryzen 7 7800X3D','AMD',9990,0,'AM5',8,16,4.2,5.0,96,120,1,5,'DDR5',5,100),
+  cpu('r9-9900x','Ryzen 9 9900X','AMD',9990,0,'AM5',12,24,4.4,5.6,64,120,1,5,'DDR5',4,108),
+  cpu('i7-14700kf','Core i7-14700KF','Intel',9990,0,'LGA1700',20,28,3.4,5.6,33,125,0,5,'DDR4/DDR5',10,102),
+  cpu('u7-265k','Core Ultra 7 265K','Intel',9990,0,'LGA1851',20,20,3.9,5.5,30,125,1,5,'DDR5',3,108),
+  cpu('r7-9800x3d','Ryzen 7 9800X3D','AMD',10990,1,'AM5',8,16,4.7,5.2,96,120,1,5,'DDR5',4,112),
+  cpu('r9-9950x','Ryzen 9 9950X','AMD',14490,0,'AM5',16,32,4.3,5.7,64,170,1,5,'DDR5',4,120),
+  cpu('r9-9950x3d','Ryzen 9 9950X3D','AMD',17990,0,'AM5',16,32,4.3,5.7,128,170,1,5,'DDR5',4,128),
+  gpu('rx6600','Radeon RX 6600 8GB','Sapphire',5490,0,8,'GDDR6',128,132,245,4,'1× 8-pin',1,[62,240,150]),
+  gpu('rtx5050','GeForce RTX 5050 8GB','MSI',6490,0,8,'GDDR6',128,130,230,5,'1× 8-pin',1,[64,250,150]),
+  gpu('arc-b580','Arc B580 12GB','Intel',6990,0,12,'GDDR6',192,190,272,4,'1× 8-pin',1,[74,260,160]),
+  gpu('rx7600','Radeon RX 7600 8GB','Gigabyte',7490,0,8,'GDDR6',128,165,240,4,'1× 8-pin',1,[70,270,165]),
+  gpu('rtx5060','GeForce RTX 5060 8GB','ASUS',7990,1,8,'GDDR7',128,145,240,5,'1× 8-pin',1,[80,310,185]),
+  gpu('rtx5060ti-8','GeForce RTX 5060 Ti 8GB','Gigabyte',8490,0,8,'GDDR7',128,180,260,5,'1× 8-pin',1,[100,370,225]),
+  gpu('rx9060xt-16','Radeon RX 9060 XT 16GB','Sapphire',10490,1,16,'GDDR6',128,160,270,5,'1× 8-pin',1,[90,330,200]),
+  gpu('rtx5060ti-16','GeForce RTX 5060 Ti 16GB','ASUS',12490,0,16,'GDDR7',128,180,304,5,'1× 8-pin',1,[105,380,230]),
+  gpu('rtx5070','GeForce RTX 5070 12GB','MSI',15990,0,12,'GDDR7',192,250,300,5,'1× 12V-2x6',1,[125,430,270]),
+  gpu('rx9070','Radeon RX 9070 16GB','PowerColor',17490,0,16,'GDDR6',256,220,300,5,'2× 8-pin',1,[120,420,260]),
+  gpu('rx9070xt','Radeon RX 9070 XT 16GB','Sapphire',21990,0,16,'GDDR6',256,304,320,5,'3× 8-pin',1,[140,450,290]),
+  gpu('rtx5070ti','GeForce RTX 5070 Ti 16GB','Gigabyte',29990,1,16,'GDDR7',256,300,304,5,'1× 12V-2x6',1,[155,480,310]),
+  gpu('rtx5080','GeForce RTX 5080 16GB','MSI',39990,0,16,'GDDR7',256,360,304,5,'1× 12V-2x6',1,[190,560,380]),
+  gpu('rtx5090','GeForce RTX 5090 32GB','ASUS',74990,0,32,'GDDR7',512,575,336,5,'1× 12V-2x6',1,[260,700,480]),
+  ram('d4-16','Kingston Fury Beast 16 GB (2×8) 3200','Kingston',3990,0,'DDR4',16,3200,16,'2×8','XMP',0),
+  ram('d4-32','Corsair Vengeance LPX 32 GB (2×16) 3600','Corsair',8490,0,'DDR4',32,3600,18,'2×16','XMP',0),
+  ram('d5-16','Kingston Fury Beast 16 GB (2×8) 5600','Kingston',5990,0,'DDR5',16,5600,36,'2×8','XMP / EXPO',0),
+  ram('d5-32-5600','Kingston Fury Beast 32 GB (2×16) 5600','Kingston',11390,1,'DDR5',32,5600,36,'2×16','XMP / EXPO',0),
+  ram('d5-32','G.Skill Ripjaws S5 32 GB (2×16) 6000','G.Skill',11490,1,'DDR5',32,6000,36,'2×16','EXPO',0),
+  ram('d5-32cl30','Corsair Vengeance 32 GB (2×16) 6000 CL30','Corsair',12190,1,'DDR5',32,6000,30,'2×16','EXPO',0),
+  ram('d5-32rgb','Corsair Vengeance RGB 32 GB (2×16) 6400','Corsair',13990,1,'DDR5',32,6400,32,'2×16','XMP',1),
+  ram('d5-48','G.Skill Trident Z5 48 GB (2×24) 6000','G.Skill',17990,0,'DDR5',48,6000,30,'2×24','EXPO',1),
+  ram('d5-64','Corsair Vengeance 64 GB (2×32) 6000','Corsair',24990,1,'DDR5',64,6000,30,'2×32','EXPO',0),
+  ram('d5-96','G.Skill Flare X5 96 GB (2×48) 6000','G.Skill',39990,0,'DDR5',96,6000,36,'2×48','EXPO',0),
+  mb('h610m','ASRock H610M-HDV','ASRock',1790,0,'LGA1700','DDR4','mATX','H610',1,0,'1 GbE',4),
+  mb('a520','MSI A520M-A PRO','MSI',1990,0,'AM4','DDR4','mATX','A520',1,0,'1 GbE',3),
+  mb('b660m','ASRock B660M Pro RS','ASRock',2990,0,'LGA1700','DDR4','mATX','B660',2,0,'1 GbE',4),
+  mb('b550','Gigabyte B550 Gaming X V2','Gigabyte',3290,0,'AM4','DDR4','ATX','B550',2,0,'1 GbE',4),
+  mb('b650m','ASRock B650M Pro RS','ASRock',3490,0,'AM5','DDR5','mATX','B650',2,0,'2.5 GbE',4),
+  mb('b760','MSI PRO B760-P','MSI',4290,0,'LGA1700','DDR5','ATX','B760',3,0,'2.5 GbE',5),
+  mb('b650','MSI MAG B650 Tomahawk WiFi','MSI',4690,0,'AM5','DDR5','ATX','B650',3,1,'2.5 GbE',5),
+  mb('b860','MSI PRO B860-P WiFi','MSI',5490,0,'LGA1851','DDR5','ATX','B860',3,1,'2.5 GbE',5),
+  mb('b850','Gigabyte B850 Aorus Elite WiFi7','Gigabyte',6290,0,'AM5','DDR5','ATX','B850',3,1,'2.5 GbE',5),
+  mb('z790','Gigabyte Z790 Aorus Elite','Gigabyte',6990,0,'LGA1700','DDR5','ATX','Z790',4,1,'2.5 GbE',5),
+  mb('x870','ASUS TUF Gaming X870-Plus WiFi','ASUS',7990,0,'AM5','DDR5','ATX','X870',4,1,'2.5 GbE',5),
+  mb('z890','MSI MAG Z890 Tomahawk WiFi','MSI',8990,0,'LGA1851','DDR5','ATX','Z890',4,1,'2.5 GbE',5),
+  mb('x870e','ASUS ROG Strix X870E-E Gaming WiFi','ASUS',10990,0,'AM5','DDR5','ATX','X870E',4,1,'2.5 GbE + 10 GbE',5),
+  psu('psu450','Endorfy Vero L5 450 W','Endorfy',1090,0,450,'80+ Bronze',0,'Ne',120,0),
+  psu('psu550','Endorfy Vero L5 Bronze 550 W','Endorfy',1390,0,550,'80+ Bronze',0,'Ne',120,0),
+  psu('psu650','Corsair RM650e 650 W','Corsair',2190,0,650,'80+ Gold',1,'Plně',135,0),
+  psu('psu750','Seasonic Focus GX 750 W','Seasonic',2690,0,750,'80+ Gold',1,'Plně',120,0),
+  psu('psu850','be quiet! Pure Power 12 M 850 W','be quiet!',3490,0,850,'80+ Gold',1,'Plně',120,1),
+  psu('psu1000','MSI MPG A1000G PCIE5 1000 W','MSI',5490,0,1000,'80+ Gold',1,'Plně',135,1),
+  psu('psu1200','Corsair RM1200x Shift 1200 W','Corsair',6990,0,1200,'80+ Gold',1,'Plně',135,1),
+  cs('c-mini','Endorfy Ventum 200','Endorfy',1190,0,300,['mATX'],155,'2× 120 mm',1,'Mini tower'),
+  cs('c-mid','Fractal Pop Air','Fractal',1690,0,405,['mATX','ATX'],170,'3× 120 mm',1,'Midi tower'),
+  cs('c-air','Fractal North','Fractal',2290,0,355,['mATX','ATX'],170,'2× 140 mm',1,'Midi tower'),
+  cs('c-bq','be quiet! Pure Base 500DX','be quiet!',2490,0,369,['mATX','ATX'],190,'3× 140 mm',1,'Midi tower'),
+  cs('c-xl','Corsair 4000D Airflow','Corsair',2690,0,360,['mATX','ATX'],170,'2× 120 mm',1,'Midi tower'),
+  cs('c-lian','Lian Li Lancool 216','Lian Li',2990,0,392,['mATX','ATX'],180,'2× 160 + 1× 140 mm',1,'Midi tower'),
+  ssd('ssd-500','Kingston NV3 500 GB','Kingston',2490,0,500,4,5000,3000,200,'TLC, bez DRAM'),
+  ssd('ssd-1t3','Kingston NV2 1 TB','Kingston',3290,0,1000,3,3500,2800,320,'TLC, bez DRAM'),
+  ssd('ssd-1t4','WD Blue SN5100 1 TB','WD',3690,1,1000,4,5000,4200,600,'TLC, bez DRAM'),
+  ssd('ssd-1t4-evo','Samsung 990 EVO Plus 1 TB','Samsung',4790,1,1000,4,7250,6300,600,'TLC, HMB'),
+  ssd('ssd-1t4-pro','Samsung 990 PRO 1 TB','Samsung',6499,1,1000,4,7450,6900,600,'TLC, DRAM'),
+  ssd('ssd-1t5','Crucial T500 1 TB','Crucial',8990,0,1000,5,10000,9500,600,'TLC, DRAM'),
+  ssd('ssd-2t4','WD Blue SN5100 2 TB','WD',5990,1,2000,4,5000,4200,1200,'TLC, bez DRAM'),
+  ssd('ssd-2t4-pro','Samsung 990 PRO 2 TB','Samsung',9990,0,2000,4,7450,6900,1200,'TLC, DRAM'),
+  ssd('ssd-2t5','Crucial T705 2 TB','Crucial',12990,0,2000,5,14500,12700,1200,'TLC, DRAM'),
+  ssd('ssd-4t4','WD Black SN850X 4 TB','WD',14990,0,4000,4,7300,6600,2400,'TLC, DRAM'),
 ];
+export const SPEC = {
+  cpu: [['s','Socket'],['n','Jádra','',1],['th','Vlákna','',1],['fb','Základní takt','GHz',1],['f','Boost takt','GHz',1],['l3','L3 cache','MB',1],['tdp','TDP','W',-1],['ig','Integrovaná grafika','yn'],['pcie','PCIe','pcie'],['mem','Paměť'],['nm','Výrobní proces','nm',-1],['sc','Výkon (index)','',1]],
+  gpu: [['vram','Paměť VRAM','GB',1],['vt','Typ paměti'],['bus','Sběrnice','bit',1],['tdp','Příkon (TBP)','W',-1],['len','Délka karty','mm',-1],['pcie','PCIe','pcie'],['pw','Napájecí konektor'],['rt','Ray tracing','yn'],['sc','Výkon (index, FPS)','',1]],
+  ram: [['t','Typ'],['gb','Kapacita','GB',1],['mhz','Frekvence','MT/s',1],['cl','Latence CL','',-1],['kit','Sada'],['exp','Profil'],['rgb','RGB osvětlení','yn']],
+  mb: [['s','Socket'],['t','Paměť'],['ff','Formát'],['chip','Čipset'],['m2','Sloty M.2','',1],['wifi','Wi-Fi','yn'],['lan','Síť'],['pcie','Slot pro grafiku','pcie']],
+  psu: [['w','Výkon','W',1],['eff','Účinnost'],['atx3','ATX 3.x','yn'],['mod','Modulární kabeláž'],['fan','Ventilátor','mm',1],['pw12','Konektor 12V-2x6','yn']],
+  case: [['type','Typ'],['ff','Podporované desky'],['mg','Max. délka grafiky','mm',1],['ch','Max. výška chladiče','mm',1],['fans','Ventilátory v balení'],['glass','Prosklený bok','yn']],
+  ssd: [['gb','Kapacita','GB',1],['pc','Rozhraní','pcie'],['rd','Čtení','MB/s',1],['wr','Zápis','MB/s',1],['tbw','Životnost (TBW)','TB',1],['nand','Paměť / cache']],
+};
+export const showVal = (v, u) => v === undefined ? '–' : u === 'yn' ? (v ? 'Ano' : 'Ne') : u === 'pcie' ? `PCIe ${v}.0` : Array.isArray(v) ? v.join(' / ') : `${typeof v === 'number' ? v.toLocaleString('cs-CZ') : v}${u ? ' ' + u : ''}`;
+export const perf = p => p.sc || p.rd || 0;
 export const dn = p => (p.name.toLowerCase().startsWith(p.brand.toLowerCase()) ? p.name : `${p.brand} ${p.name}`);
 export const BY = Object.fromEntries(PARTS.map(p => [p.id, p]));
 export const RETAILERS = [
-  ['Alza', q => `https://www.alza.cz/search.htm?exps=${q}`, 0.02],
-  ['Smarty', q => `https://www.smarty.cz/search?q=${q}`, 0.01],
-  ['TS Bohemia', q => `https://www.tsbohemia.cz/vyhledavani_c1.html?string=${q}`, 0],
-  ['Mironet', q => `https://www.mironet.cz/vyhledavani/?string=${q}`, 0.012],
-  ['CZC.cz', q => `https://www.czc.cz/${q}/hledat`, 0.005],
+  ['Alza', q => `https://www.alza.cz/search.htm?exps=${q}`, 0.03],
+  ['Datart', q => `https://www.datart.cz/vyhledavani?q=${q}`, 0.0],
+  ['Mironet', q => `https://www.mironet.cz/vyhledavani/?string=${q}`, 0.015],
+  ['TS Bohemia', q => `https://www.tsbohemia.cz/vyhledavani_c1.html?string=${q}`, 0.005],
+  ['CZC.cz', q => `https://www.czc.cz/${q}/hledat`, 0.01],
 ];
 const hs = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
-const OUT = new Set(['rtx5090','i7-14700k','d5-32rgb','psu1200','ssd-2t5','b550','arc-b580']);
+const OUT = new Set(['rtx5090','i7-14700kf','d5-96','psu1200','ssd-1t5','b550','r9-9950x3d']);
 const cache = new Map();
 export const offers = p => {
   if (!cache.has(p.id)) cache.set(p.id, RETAILERS.map(([n, u, b]) => {
     const r = hs(p.id + n);
-    return { n, price: Math.round(p.price * (1 + b + ((r % 60) - 30) / 1000) / 10) * 10, stock: !OUT.has(p.id) && r % 7 !== 0, url: u(encodeURIComponent(dn(p))) };
+    return { n, price: Math.round(p.price * (1 + b + ((r % 40) - 15) / 1000) / 10) * 10, stock: !OUT.has(p.id) && r % 7 !== 0, url: u(encodeURIComponent(dn(p))) };
   }));
   return cache.get(p.id);
 };
 export const best = p => { const os = offers(p), s = os.filter(o => o.stock); return (s.length ? s : os).reduce((a, b) => (b.price < a.price ? b : a)); };
 export const fmt = n => `${Math.round(n).toLocaleString('cs-CZ')} Kč`;
 export const spec = p => ({
-  cpu: () => `${p.s} · ${p.c} jader · ${p.tdp} W`,
-  gpu: () => `${p.vram} GB · ${p.tdp} W · ${p.len} mm · PCIe ${p.pcie}.0`,
-  ram: () => `${p.t} · ${p.gb} GB`,
-  mb: () => `${p.s} · ${p.t} · ${p.ff}`,
-  psu: () => `${p.w} W · ATX`,
-  case: () => `${p.ff.join(' / ')} · karta až ${p.mg} mm`,
-  ssd: () => `${p.gb >= 1000 ? p.gb / 1000 + ' TB' : p.gb + ' GB'} · PCIe ${p.pc}.0`,
+  cpu: () => `${p.s} · ${p.n}/${p.th} jader/vláken · ${p.f} GHz · ${p.tdp} W`,
+  gpu: () => `${p.vram} GB ${p.vt} · ${p.tdp} W · ${p.len} mm · PCIe ${p.pcie}.0`,
+  ram: () => `${p.t} · ${p.gb} GB · ${p.mhz} MT/s · CL${p.cl}`,
+  mb: () => `${p.s} · ${p.t} · ${p.ff} · ${p.chip}`,
+  psu: () => `${p.w} W · ${p.eff} · ${p.mod} modulární`,
+  case: () => `${p.ff.join(' / ')} · karta až ${p.mg} mm · chladič až ${p.ch} mm`,
+  ssd: () => `${p.gb >= 1000 ? p.gb / 1000 + ' TB' : p.gb + ' GB'} · PCIe ${p.pc}.0 · ${p.rd} MB/s`,
 })[p.cat]();
 export const power = o => (o.cpu || o.gpu ? 90 : 0) + (o.cpu?.tdp || 0) + (o.gpu?.tdp || 0);
 export const rec = draw => Math.ceil((draw * 1.3) / 50) * 50;
 export function check(o) {
   const r = [], { cpu, gpu, ram, mb, psu, case: cs } = o;
   if (cpu && mb) r.push(cpu.s === mb.s ? { l: 'ok', t: `Socket ${cpu.s} sedí` } : { l: 'bad', t: `Socket: procesor ${cpu.s}, deska ${mb.s}` });
-  if (ram && mb) r.push(ram.t === mb.t ? { l: 'ok', t: `${ram.t} je podporována` } : { l: 'bad', t: `Deska potřebuje ${mb.t}, paměť je ${ram.t}` });
+  if (ram && mb) r.push(mb.t === 'DDR4' || mb.t === 'DDR5' ? (ram.t === mb.t ? { l: 'ok', t: `${ram.t} je podporována` } : { l: 'bad', t: `Deska potřebuje ${mb.t}, paměť je ${ram.t}` }) : { l: 'ok', t: 'Paměť sedí' });
+  if (cpu && ram && !cpu.mem.includes(ram.t)) r.push({ l: 'bad', t: `Procesor podporuje jen ${cpu.mem}` });
   if (psu && (cpu || gpu)) {
     const d = power(o), need = rec(d);
     r.push(psu.w >= need ? { l: 'ok', t: `Zdroj ${psu.w} W stačí (doporučeno ${need} W)` } : psu.w >= d * 1.1 ? { l: 'warn', t: `Zdroj ${psu.w} W je těsný, doporučeno ${need} W` } : { l: 'bad', t: `Zdroj ${psu.w} W je slabý, potřeba ${need} W` });
@@ -98,14 +145,14 @@ export function check(o) {
   return r.length ? r : [{ l: 'idle', t: 'Vyber díly a Qompify začne kontrolovat kompatibilitu' }];
 }
 export const TIERS = [
-  { id: 't15', label: 'do 15 000 Kč', blurb: 'Plynulé hraní esportovek ve Full HD.', ids: ['r5-5600','rx6600','d4-16','a520','psu450','c-mini','ssd-1t3'] },
-  { id: 't25', label: 'do 25 000 Kč', blurb: 'Vyvážená DDR5 platforma s prostorem na upgrade.', ids: ['r5-7600','rtx4060','d5-16','b650m','psu650','c-mid','ssd-1t4'] },
-  { id: 't35', label: 'do 35 000 Kč', blurb: '16 GB grafika pro vysoké detaily a DLSS.', ids: ['r5-9600x','rtx5060ti','d5-32','b650','psu750','c-air','ssd-1t4'] },
-  { id: 't50', label: '50 000+ Kč', blurb: 'Nejrychlejší herní procesor a high-end grafika.', ids: ['r7-7800x3d','rtx5070ti','d5-32','b650','psu850','c-air','ssd-2t4'] },
+  { id: 't25', label: 'do 25 000 Kč', blurb: 'AM4 s DDR4: nejlevnější cesta, dokud je DDR5 tak drahá.', ids: ['r5-5600','rx7600','d4-16','a520','psu550','c-mini','ssd-1t3'] },
+  { id: 't35', label: 'do 35 000 Kč', blurb: 'AM5 platforma s 16 GB grafikou pro Full HD na vysoké.', ids: ['r5-7600','rx9060xt-16','d5-16','b650m','psu650','c-mid','ssd-1t4'] },
+  { id: 't45', label: 'do 45 000 Kč', blurb: '32 GB DDR5 a RTX 5060 Ti 16 GB pro 1440p.', ids: ['r5-9600x','rtx5060ti-16','d5-32','b650','psu750','c-air','ssd-1t4'] },
+  { id: 't70', label: 'do 70 000 Kč', blurb: 'Nejlepší herní procesor a RX 9070 XT.', ids: ['r7-9800x3d','rx9070xt','d5-32','b650','psu850','c-air','ssd-2t4'] },
 ];
 export const SEEDS = [
-  { id: 's1', name: 'Tichá 1440p mašina', by: 'martin_k', likes: 128, ids: ['r5-9600x','rtx5060ti','d5-32','b650','psu750','c-bq','ssd-2t4'] },
-  { id: 's2', name: 'CS2 za pár korun', by: 'dominik.cz', likes: 86, ids: ['i5-12400f','rx6600','d4-16','b660m','psu450','c-mini','ssd-1t3'] },
+  { id: 's1', name: 'Tichá 1440p mašina', by: 'martin_k', likes: 128, ids: ['r5-9600x','rtx5060ti-16','d5-32','b650','psu750','c-bq','ssd-2t4'] },
+  { id: 's2', name: 'CS2 za pár korun', by: 'dominik.cz', likes: 86, ids: ['i5-12400f','rx6600','d4-16','b660m','psu450','c-mini','ssd-500'] },
   { id: 's3', name: 'Streamovací monstrum', by: 'lenka_pc', likes: 211, ids: ['r9-9950x','rtx5080','d5-64','x870e','psu1000','c-lian','ssd-4t4'] },
-  { id: 's4', name: 'Intel ve dvaceti pěti', by: 'jakub.b', likes: 54, ids: ['i5-14600kf','rx7600xt','d5-16','b760','psu650','c-xl','ssd-1t4'] },
+  { id: 's4', name: 'Intel ve čtyřiceti', by: 'jakub.b', likes: 54, ids: ['i5-14600kf','rx9070','d5-32','b760','psu650','c-xl','ssd-1t4'] },
 ];
