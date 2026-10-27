@@ -1,20 +1,16 @@
 {
   "name": "qompify",
   "private": true,
-  "version": "1.0.0",
-  "type": "module",
+  "version": "1.1.0",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "build:docs": "vite build --outDir docs --emptyOutDir"
+    "build": "esbuild src/main.jsx --bundle --minify --target=es2020 --outfile=docs/app.js --loader:.png=dataurl --loader:.ttf=dataurl --jsx=automatic --define:process.env.NODE_ENV='\"production\"'",
+    "dev": "esbuild src/main.jsx --bundle --outfile=docs/app.js --loader:.png=dataurl --loader:.ttf=dataurl --jsx=automatic --watch"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.8"
+    "esbuild": "^0.24.0"
   }
 }

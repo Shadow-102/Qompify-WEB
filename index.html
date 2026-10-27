@@ -5,14 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0b0f19" />
     <meta name="description" content="Qompify: skládej PC, ověř kompatibilitu naživo a porovnej ceny v českých e-shopech." />
-    <link rel="icon" href="./favicon.png" />
+    <title>Qompify – stavitel PC a srovnávač cen</title>
+    <link rel="icon" href="./docs/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <title>Qompify – stavitel PC a srovnávač cen</title>
+    <link rel="stylesheet" href="./docs/app.css" />
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+  <body style="background:#0f121c;color:#F3EBDD">
+    <div id="root"><p id="boot" style="font:16px system-ui,sans-serif;padding:24px">Načítání Qompify…</p></div>
+    <noscript><p style="padding:24px">Qompify potřebuje zapnutý JavaScript.</p></noscript>
+    <script>
+      addEventListener('error', function (e) {
+        var b = document.getElementById('boot');
+        if (b) b.textContent = 'Chyba: ' + (e.message || (e.target && (e.target.src || e.target.href)) || 'načtení selhalo');
+      }, true);
+    </script>
+    <script src="./docs/app.js"></script>
   </body>
 </html>

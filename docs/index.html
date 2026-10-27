@@ -12,8 +12,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./app.css" />
   </head>
-  <body style="background:#0f121c">
-    <div id="root"></div>
+  <body style="background:#0f121c;color:#F3EBDD">
+    <div id="root"><p id="boot" style="font:16px system-ui,sans-serif;padding:24px">Načítání Qompify…</p></div>
+    <noscript><p style="padding:24px">Qompify potřebuje zapnutý JavaScript.</p></noscript>
+    <script>
+      addEventListener('error', function (e) {
+        var b = document.getElementById('boot');
+        if (b) b.textContent = 'Chyba: ' + (e.message || (e.target && (e.target.src || e.target.href)) || 'načtení selhalo');
+      }, true);
+    </script>
     <script src="./app.js"></script>
   </body>
 </html>
