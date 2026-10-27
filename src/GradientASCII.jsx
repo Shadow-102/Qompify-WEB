@@ -12,9 +12,9 @@ void main(){
   vec2 px=gl_FragCoord.xy;vec2 cell=floor(px/uCell);vec2 f=fract(px/uCell);
   vec2 uv=(cell+.5)*uCell/uR;float asp=uR.x/uR.y;
   float w=.05*sin(uv.x*5.+uT*.4)+.03*sin(uv.x*11.-uT*.7);
-  float d=uv.y-(.40+w);
+  float d=uv.y-(.30+w);
   float v=d>0.?.9*exp(-d*3.6):.28*exp(d*2.5)*(.6+.4*sin(uv.x*90.+d*60.));
-  vec2 sp=(uv-vec2(.5+.18*sin(uT*.15),.40))*vec2(asp,1.);
+  vec2 sp=(uv-vec2(.5+.18*sin(uT*.15),.30))*vec2(asp,1.);
   v+=.55*exp(-dot(sp,sp)*14.);
   float near=1.-smoothstep(0.,10.,length((px-uM)/uCell));
   v=clamp(v+near*.35,0.,1.);
@@ -23,7 +23,11 @@ void main(){
   float idx=floor(v*(uN-.01));
   if(h(cell+7.)<near)idx=floor(h(cell+floor(uT*10.))*uN);
   float a=texture2D(uA,vec2((idx+f.x)/uN,f.y)).a;
-  vec3 bg=uL>.5?vec3(.95,.92,.87):vec3(.043,.059,.098);
+  float y=uv.y;
+  vec3 dk=mix(vec3(.059,.071,.110),vec3(.086,.086,.118),smoothstep(1.,.5,y));
+  dk=mix(dk,vec3(.067,.157,.235),smoothstep(.5,.14,y));
+  dk=mix(dk,vec3(.165,.373,.502),smoothstep(.14,0.,y));
+  vec3 bg=uL>.5?vec3(.95,.92,.87):dk;
   vec3 ink=uL>.5?c*.75:c;
   vec3 col=bg+c*v*.07*(uL>.5?-1.:1.);
   col=mix(col,ink*(.55+v*.6),a*clamp(.2+v*1.3,0.,1.));

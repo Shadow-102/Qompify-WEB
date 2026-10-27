@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import GradientASCII from './GradientASCII.jsx';
-import { CATS, PARTS, BY, TIERS, SEEDS, GAMES, offers, best, fmt, spec, check, power, rec } from './data.js';
+import { CATS, PARTS, BY, dn, TIERS, SEEDS, GAMES, offers, best, fmt, spec, check, power, rec } from './data.js';
 import logo from './assets/logo.png';
 
 const NAV = [['builder', 'Stavitel PC'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['komunita', 'Komunita']];
@@ -89,7 +89,7 @@ function Sheet({ cat, sel, onClose, onPick }) {
           {list.map(({ p, bad, rec: isRec, pr }) => (
             <li key={p.id}>
               <button className={`pick${bad ? ' dim' : ''}${sel[cat] === p.id ? ' cur' : ''}`} onClick={() => onPick(p.id)}>
-                <span><b>{p.brand} {p.name}</b><small>{spec(p)}</small>{bad && <small className="why">Nekompatibilní: {bad.t}</small>}</span>
+                <span><b>{dn(p)}</b><small>{spec(p)}</small>{bad && <small className="why">Nekompatibilní: {bad.t}</small>}</span>
                 <span className="pp">{isRec && <em className="tag">Doporučujeme</em>}<b>{fmt(pr)}</b></span>
               </button>
             </li>
@@ -122,7 +122,7 @@ function Builder({ sel, setSel, add, save, copy }) {
                 <li key={c} className={p ? 'filled' : ''}>
                   <button className="slot" onClick={() => setPick(c)}>
                     <span className="slot-l">{label}</span>
-                    <span className="slot-n">{p ? <><b>{p.brand} {p.name}</b><small>{spec(p)}</small></> : <small>Vybrat z {PARTS.filter(x => x.cat === c).length} dílů</small>}</span>
+                    <span className="slot-n">{p ? <><b>{dn(p)}</b><small>{spec(p)}</small></> : <small>Vybrat z {PARTS.filter(x => x.cat === c).length} dílů</small>}</span>
                     <span className="slot-p">{p ? fmt(best(p).price) : 'Vybrat'}</span>
                   </button>
                   {p && <button className="mini" onClick={() => setFocus(p.id)}>Ceny</button>}
@@ -148,7 +148,7 @@ function Builder({ sel, setSel, add, save, copy }) {
             <Share ids={ids} title={`Moje PC sestava za ${fmt(tot)}, Qompify`} copy={copy} />
           </section>
           <section className="card cmp">
-            <h2>{fp ? `${fp.brand} ${fp.name}` : 'Porovnání cen'}</h2>
+            <h2>{fp ? dn(fp) : 'Porovnání cen'}</h2>
             {fp ? <><p className="muted">{spec(fp)}</p><Offers p={fp} /></> : <p className="muted">Vyber první díl a uvidíš ceny z Alzy, Smarty, TS Bohemia, Mironetu a CZC.</p>}
           </section>
         </aside>
@@ -172,7 +172,7 @@ function Tiers({ go, save }) {
           <article className="card tier" key={r.id}>
             <header><h2>{r.label}</h2><b>{fmt(r.tot)}</b></header>
             <p className="muted">{r.blurb}</p>
-            <ul className="parts">{CATS.map(([c, l]) => <li key={c}><span>{l}</span><span>{r.o[c].brand} {r.o[c].name}</span><b>{fmt(best(r.o[c]).price)}</b></li>)}</ul>
+            <ul className="parts">{CATS.map(([c, l]) => <li key={c}><span>{l}</span><span>{dn(r.o[c])}</span><b>{fmt(best(r.o[c]).price)}</b></li>)}</ul>
             <div className="fps">
               {GAMES.map(([g, q], i) => (
                 <div key={g}>
@@ -191,11 +191,11 @@ function Tiers({ go, save }) {
 }
 
 function Catalog({ add, say }) {
-  const [cat, setCat] = useState('all'), [q, setQ] = useState(''), [max, setMax] = useState(60000), [stock, setStock] = useState(false);
+  const [cat, setCat] = useState('all'), [q, setQ] = useState(''), [max, setMax] = useState(70000), [stock, setStock] = useState(false);
   const [vram, setVram] = useState(0), [tdp, setTdp] = useState(0), [pc, setPc] = useState(0), [open, setOpen] = useState(null);
   const list = useMemo(() => PARTS.filter(p => {
     const pr = best(p).price, g = p.pcie ?? p.pc;
-    return (cat === 'all' || p.cat === cat) && pr <= max && `${p.brand} ${p.name}`.toLowerCase().includes(q.toLowerCase())
+    return (cat === 'all' || p.cat === cat) && pr <= max && dn(p).toLowerCase().includes(q.toLowerCase())
       && (!stock || offers(p).some(o => o.stock)) && (!vram || p.vram >= vram) && (!tdp || p.tdp <= tdp) && (!pc || g >= pc);
   }).sort((a, b) => best(a).price - best(b).price), [cat, q, max, stock, vram, tdp, pc]);
   const sel = (v, set, label, opts) => <label>{label}<select value={v} onChange={e => set(+e.target.value)}><option value={0}>Libovolné</option>{opts.map(x => <option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>;
@@ -206,7 +206,7 @@ function Catalog({ add, say }) {
         <div className="chips">{[['all', 'Vše'], ...CATS].map(([c, l]) => <button key={c} className={cat === c ? 'on' : ''} onClick={() => setCat(c)}>{l}</button>)}</div>
         <div className="frow">
           <label>Hledat<input value={q} onChange={e => setQ(e.target.value)} placeholder="např. RTX, Ryzen, 1 TB" /></label>
-          <label>Cena do {fmt(max)}<input type="range" min={1000} max={60000} step={500} value={max} onChange={e => setMax(+e.target.value)} /></label>
+          <label>Cena do {fmt(max)}<input type="range" min={1000} max={70000} step={500} value={max} onChange={e => setMax(+e.target.value)} /></label>
           {sel(vram, setVram, 'VRAM od', [[8, '8 GB'], [12, '12 GB'], [16, '16 GB'], [32, '32 GB']])}
           {sel(tdp, setTdp, 'TDP do', [[65, '65 W'], [125, '125 W'], [200, '200 W'], [320, '320 W']])}
           {sel(pc, setPc, 'PCIe od', [[3, '3.0'], [4, '4.0'], [5, '5.0']])}
@@ -217,7 +217,7 @@ function Catalog({ add, say }) {
       <ul className="catalog">
         {list.map(p => (
           <li key={p.id} className="card part">
-            <div className="ph"><span className="muted">{LBL[p.cat]}</span><b>{p.brand} {p.name}</b><small>{spec(p)}</small></div>
+            <div className="ph"><span className="muted">{LBL[p.cat]}</span><b>{dn(p)}</b><small>{spec(p)}</small></div>
             <div className="pr"><b>{fmt(best(p).price)}</b><span className="muted">nejnižší cena</span></div>
             <div className="actions"><button className="btn" onClick={() => { add(p.id); say(`${p.name} přidán do stavitele`); }}>Do sestavy</button><button className="ghost" onClick={() => setOpen(open === p.id ? null : p.id)}>{open === p.id ? 'Skrýt ceny' : 'Porovnat ceny'}</button></div>
             {open === p.id && <Offers p={p} />}

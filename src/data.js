@@ -53,6 +53,7 @@ export const PARTS = [
   P('ssd-2t5','ssd','Crucial T705 2 TB','Crucial',6490,{gb:2000,pc:5}),
   P('ssd-4t4','ssd','WD Black SN850X 4 TB','WD',7490,{gb:4000,pc:4}),
 ];
+export const dn = p => (p.name.toLowerCase().startsWith(p.brand.toLowerCase()) ? p.name : `${p.brand} ${p.name}`);
 export const BY = Object.fromEntries(PARTS.map(p => [p.id, p]));
 export const RETAILERS = [
   ['Alza', q => `https://www.alza.cz/search.htm?exps=${q}`, 0.02],
@@ -62,25 +63,26 @@ export const RETAILERS = [
   ['CZC.cz', q => `https://www.czc.cz/${q}/hledat`, 0.005],
 ];
 const hs = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const OUT = new Set(['rtx5090','i7-14700k','d5-32rgb','psu1200','ssd-2t5','b550','arc-b580']);
 const cache = new Map();
 export const offers = p => {
   if (!cache.has(p.id)) cache.set(p.id, RETAILERS.map(([n, u, b]) => {
     const r = hs(p.id + n);
-    return { n, price: Math.round(p.price * (1 + b + ((r % 60) - 30) / 1000) / 10) * 10, stock: r % 7 !== 0, url: u(encodeURIComponent(`${p.brand} ${p.name}`)) };
+    return { n, price: Math.round(p.price * (1 + b + ((r % 60) - 30) / 1000) / 10) * 10, stock: !OUT.has(p.id) && r % 7 !== 0, url: u(encodeURIComponent(dn(p))) };
   }));
   return cache.get(p.id);
 };
 export const best = p => { const os = offers(p), s = os.filter(o => o.stock); return (s.length ? s : os).reduce((a, b) => (b.price < a.price ? b : a)); };
 export const fmt = n => `${Math.round(n).toLocaleString('cs-CZ')} Kč`;
 export const spec = p => ({
-  cpu: `${p.s} · ${p.c} jader · ${p.tdp} W`,
-  gpu: `${p.vram} GB · ${p.tdp} W · ${p.len} mm · PCIe ${p.pcie}.0`,
-  ram: `${p.t} · ${p.gb} GB`,
-  mb: `${p.s} · ${p.t} · ${p.ff}`,
-  psu: `${p.w} W · ATX`,
-  case: `${p.ff.join(' / ')} · karta až ${p.mg} mm`,
-  ssd: `${p.gb >= 1000 ? p.gb / 1000 + ' TB' : p.gb + ' GB'} · PCIe ${p.pc}.0`,
-})[p.cat];
+  cpu: () => `${p.s} · ${p.c} jader · ${p.tdp} W`,
+  gpu: () => `${p.vram} GB · ${p.tdp} W · ${p.len} mm · PCIe ${p.pcie}.0`,
+  ram: () => `${p.t} · ${p.gb} GB`,
+  mb: () => `${p.s} · ${p.t} · ${p.ff}`,
+  psu: () => `${p.w} W · ATX`,
+  case: () => `${p.ff.join(' / ')} · karta až ${p.mg} mm`,
+  ssd: () => `${p.gb >= 1000 ? p.gb / 1000 + ' TB' : p.gb + ' GB'} · PCIe ${p.pc}.0`,
+})[p.cat]();
 export const power = o => (o.cpu || o.gpu ? 90 : 0) + (o.cpu?.tdp || 0) + (o.gpu?.tdp || 0);
 export const rec = draw => Math.ceil((draw * 1.3) / 50) * 50;
 export function check(o) {
