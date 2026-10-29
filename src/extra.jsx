@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import BellToggle from './BellToggle.jsx';
 import { CATS, PARTS, BY, LOOK, SPEC, GAMES, MONITORS, RES_K, showVal, perf, dn, offers, best, fmt, spec, check, power, history, deals, optimize, fpsEff } from './data.js';
 
 const LBL = Object.fromEntries(CATS);
@@ -40,10 +41,12 @@ export function PriceChart({ p, w = 300, h = 96 }) {
 
 function AlertBox({ p, alerts, setAlert }) {
   const a = alerts[p.id], cur = best(p).price, [v, setV] = useState(Math.round((cur * 0.93) / 10) * 10);
-  return a ? (
-    <div className="alert"><span>Hlídáme do {fmt(a.target)}{cur <= a.target ? ' · cíl splněn' : ''}</span><button className="mini" onClick={() => setAlert(p.id, null)}>Zrušit</button></div>
-  ) : (
-    <div className="alert"><input type="number" step="10" min="100" value={v} onChange={e => setV(+e.target.value)} aria-label="Cílová cena v Kč" /><button className="mini on" onClick={() => setAlert(p.id, v)}>Upozorni mě</button></div>
+  return (
+    <div className="alert">
+      {!a && <input type="number" step="10" min="100" value={v} onChange={e => setV(+e.target.value)} aria-label="Cílová cena v Kč" />}
+      <BellToggle offLabel="Upozorni mě" onLabel="Cenu hlídáme" label={`Hlídat cenu: ${dn(p)}`} color="#F3EBDD" background="#0b0f19" onColor="#ffffff" onBackground="#3B66F5" size="sm" radius={18} badge={false} pressed={!!a} onChange={on => setAlert(p.id, on ? v : null)} />
+      {a && <span>do {fmt(a.target)}{cur <= a.target ? ' · cíl splněn' : ''}</span>}
+    </div>
   );
 }
 
@@ -169,7 +172,7 @@ export function Optimizer({ go, save }) {
 
 const PAN = { 'QD-OLED': 'oled', 'QD-OLED zakřivený': 'oled', 'IPS Black': 'ips', 'Fast IPS': 'ips', IPS: 'ips', VA: 'va' };
 const RESPTS = { FHD: 1, QHD: 1.8, UWQHD: 2.2, '4K': 3.2 };
-export function Articles() {
+function MonitorArticle() {
   const gpus = PARTS.filter(p => p.cat === 'gpu'), [gid, setGid] = useState('rtx5060ti-16'), [gi, setGi] = useState(0), [rf, setRf] = useState('all'), [use, setUse] = useState('gaming');
   const [pick, setPick] = useState(null), [open, setOpen] = useState(null), gpu = BY[gid];
   const fps = res => Math.round(gpu.sc * GAMES[gi][2] * RES_K[res]);
@@ -224,6 +227,60 @@ export function Articles() {
         <ul className="verdict"><li>Nejlepší poměr cena/výkon: <b>{dn(m0)}</b> ({fmt(best(m0).price)})</li><li>Levný start do 144+ Hz QHD: <b>{dn(budget)}</b> ({fmt(best(budget).price)})</li><li>Nejlevnější OLED: <b>{dn(cheapOled)}</b> ({fmt(best(cheapOled).price)})</li></ul>
         <p className="muted">Pozor: akční ceny jsou často vázané na slevové kódy obchodů a po čase se vrací výš. Před koupí je ověř. Pro 4K při 240 Hz potřebuješ grafiku třídy RTX 5080 a výš.</p>
       </section>
+      <section className="card art"><h2>4. Co znamenají parametry monitoru</h2><Glossary items={MON_GLOSS} /></section>
     </>
   );
+}
+
+const Glossary = ({ items }) => <dl className="gloss">{items.map(([t, d]) => <div key={t}><dt>{t}</dt><dd>{d}</dd></div>)}</dl>;
+const MON_GLOSS = [
+  ['Rozlišení', 'Počet pixelů: FHD je 1920×1080, QHD 2560×1440, 4K 3840×2160. Víc pixelů znamená ostřejší obraz, ale grafika musí vykreslit víc práce. 4K je zhruba 2,25× náročnější než QHD a QHD 1,8× náročnější než FHD.'],
+  ['Úhlopříčka a PPI', 'Hustota pixelů (PPI) říká, jak jemný je obraz. 24" FHD má asi 92 PPI, 27" QHD asi 109 PPI, 32" 4K asi 138 PPI a 27" 4K asi 163 PPI. Pro 27" je QHD zlatý střed, 4K se vyplatí od 32" nebo na tvorbu.'],
+  ['Obnovovací frekvence (Hz)', 'Kolikrát za sekundu se obraz překreslí. 60 Hz stačí na kancelář, 144 až 180 Hz je znatelně plynulé hraní, 240 Hz a víc dává smysl hlavně v esportu. Frekvenci využiješ jen tehdy, když grafika dává tolik FPS.'],
+  ['Odezva (ms)', 'Za jak dlouho pixel změní barvu. Čím nižší, tím méně šmouh za pohybem. OLED má kolem 0,03 ms, rychlé IPS 0,5 až 1 ms, běžná VA bývá pomalejší. Výrobci měří různě, proto jde o orientační číslo.'],
+  ['Typ panelu: IPS', 'Věrné barvy a široké pozorovací úhly. Černá bývá spíš šedá a kontrast kolem 1000:1. Fast IPS je rychlejší varianta pro hráče. Dobrá volba na práci i hry.'],
+  ['Typ panelu: VA', 'Hlubší černá a vyšší kontrast (často 3000:1 a víc), obvykle nižší cena. Slabinou bývají pomalejší přechody tmavých barev a užší úhly.'],
+  ['Typ panelu: OLED a QD-OLED', 'Každý pixel svítí sám, takže je černá dokonalá a odezva téměř nulová. Cenou je riziko vypálení při dlouho statickém obrazu, nižší jas na celé ploše a lesklý povrch. QD-OLED přidává kvantové tečky pro sytější barvy.'],
+  ['HDR a jas (cd/m²)', 'HDR rozšiřuje rozdíl mezi nejtmavším a nejsvětlejším. Smysl má jen s vysokým špičkovým jasem a dobrým kontrastem. Levné „HDR“ bez lokálního stmívání obraz spíš zhorší. Hledej DisplayHDR 600 a víc nebo OLED.'],
+  ['Adaptive-Sync (FreeSync, G-Sync Compatible)', 'Monitor mění frekvenci podle FPS, takže zmizí trhání obrazu bez zpoždění, které přidává klasická vertikální synchronizace. Dnes ho má skoro každý herní monitor.'],
+  ['Rozhraní: DisplayPort a HDMI', 'DisplayPort zvládne vyšší frekvence při vyšším rozlišení než starší HDMI. U některých monitorů je například QHD při 180 Hz možné jen přes DisplayPort, přes HDMI jen 144 Hz. DisplayPort 2.1 přenese 4K při 240 Hz bez komprese, DisplayPort 1.4 to zvládne s kompresí DSC.'],
+  ['Barevný gamut a ΔE', 'Pokrytí sRGB (web) a DCI-P3 (video, HDR) udává, kolik barev panel zobrazí. Pro tvorbu hledej 99 % sRGB a tovární kalibraci s ΔE pod 2. Pro hry a běžnou práci stačí běžné pokrytí.'],
+  ['Zakřivení a poměr stran', 'Zakřivení (například 1000R nebo 1500R) obalí obraz kolem tebe, hodí se u širokých monitorů. Ultrawide 21:9 nebo 32:9 přidá šířku, ale některé hry s ním nepočítají.'],
+];
+const PART_GLOSS = [
+  ['Jádra a vlákna (CPU)', 'Jádro je samostatná výpočetní jednotka, vlákno umožní jádru zpracovat dvě úlohy najednou. Hry využijí 6 až 8 rychlých jader, střih videa nebo renderování i 16 a víc.'],
+  ['Takt a boost (GHz)', 'Základní takt je výchozí rychlost, boost krátkodobé maximum při zátěži. Vyšší číslo je lepší jen v rámci stejné architektury, nelze porovnávat AMD s Intelem jen podle GHz.'],
+  ['L3 cache a 3D V-Cache', 'Rychlá paměť přímo u procesoru. Modely X3D mají extra cache navíc a v hrách patří k nejrychlejším.'],
+  ['TDP a skutečný příkon', 'TDP je orientační chladicí požadavek, ne přesná spotřeba. Qompify počítá s příkonem procesoru a grafiky plus 90 W na zbytek a k tomu přidá rezervu 30 % pro doporučený zdroj.'],
+  ['Socket a čipset', 'Socket (AM4, AM5, LGA1700, LGA1851) musí odpovídat desce. Čipset (B650, B760, Z890…) určuje počet M.2 slotů, přetaktování a výbavu desky.'],
+  ['VRAM a typ paměti (GPU)', 'Paměť grafiky pro textury. 8 GB je dnes minimum pro Full HD, 12 až 16 GB je rozumné pro QHD a 4K. GDDR7 je rychlejší než GDDR6.'],
+  ['Sběrnice a šířka pásma', 'Šířka paměťové sběrnice v bitech (128, 192, 256, 512) spolu s typem paměti určuje propustnost. Úzká sběrnice u levnějších karet zpomaluje 4K.'],
+  ['TBP (příkon grafiky)', 'Celkový příkon karty při zátěži. Určuje velikost zdroje i počet napájecích konektorů (8-pin nebo 12V-2x6).'],
+  ['PCIe generace', 'Rychlost propojení karty nebo SSD se základní deskou. Každá generace zdvojnásobuje propustnost, ale pro většinu her nehraje roli. U SSD je znát při kopírování velkých souborů.'],
+  ['Ray tracing, DLSS a FSR', 'Ray tracing počítá realistické světlo, ale ubírá FPS. DLSS (NVIDIA) a FSR (AMD) vykreslí hru v nižším rozlišení a chytře ji zvětší, takže FPS vzroste.'],
+  ['DDR4 a DDR5', 'Dva nekompatibilní typy paměti: deska podporuje vždy jen jeden z nich. DDR5 je novější a rychlejší, DDR4 zůstává levnější volbou pro starší platformy.'],
+  ['Frekvence (MT/s) a latence CL', 'Vyšší MT/s zvyšuje propustnost, nižší CL zkracuje čekání. Skutečná latence v ns je CL ÷ MT/s × 2000, takže DDR5-6000 CL30 je rychlejší než 6000 CL36.'],
+  ['Sada 2×16 a profil EXPO/XMP', 'Dva moduly běží v dual-channel, což je rychlejší než jeden velký. Profil EXPO (AMD) nebo XMP (Intel) je potřeba zapnout v BIOSu, jinak paměť běží pomaleji.'],
+  ['TBW, DRAM a HMB (SSD)', 'TBW je celkový objem dat, který lze na disk zapsat za jeho život. DRAM cache zrychluje práci disku, levnější modely místo ní používají část paměti počítače (HMB).'],
+  ['80+ účinnost a ATX 3.x (zdroj)', '80+ Bronze, Gold, Platinum říká, kolik energie zdroj promění v teplo. Gold je dobrá volba. ATX 3.x a konektor 12V-2x6 potřebují nejnovější výkonné grafiky.'],
+  ['Max. délka GPU a výška chladiče (skříň)', 'Skříň má limity: pokud je karta delší než povolená délka, nevejde se. Stejně tak vysoký vzduchový chladič procesoru. Proto Qompify kontroluje délku karty a formát desky.'],
+];
+const ARTICLES = [
+  { id: 'monitory', t: 'Jaký monitor koupit v roce 2026', d: 'Interaktivní průvodce: co utáhne tvoje grafika, jak souvisí cena s frekvencí a které monitory za aktuální ceny stojí za to. Obsahuje vysvětlení všech parametrů.', tag: 'Monitory · interaktivní grafy' },
+  { id: 'parametry', t: 'Co znamenají parametry PC dílů', d: 'Jádra, VRAM, MT/s, TBW, ATX 3.x. Srozumitelné vysvětlení specifikací procesorů, grafik, pamětí, disků, zdrojů a skříní.', tag: 'Průvodce · slovníček' },
+];
+function PartsArticle() {
+  return (<><Head title="Co znamenají parametry PC dílů" sub="Slovníček specifikací, které najdeš v katalogu a v porovnání. Vždy říká, co číslo znamená a kdy na něm záleží." /><section className="card art"><Glossary items={PART_GLOSS} /></section></>);
+}
+export function Articles({ a }) {
+  const art = ARTICLES.find(x => x.id === a);
+  if (!art) return (
+    <>
+      <Head title="Články a průvodci" sub="Vyber téma. Článek se otevře po kliknutí." />
+      <div className="tiers">{ARTICLES.map(x => (
+        <a key={x.id} className="card artcard" href={`#/clanky?a=${x.id}`}><small>{x.tag}</small><h2>{x.t}</h2><p className="muted">{x.d}</p><span className="btn">Číst článek</span></a>
+      ))}</div>
+    </>
+  );
+  return (<><a className="back" href="#/clanky">← Všechny články</a>{a === 'monitory' ? <MonitorArticle /> : <PartsArticle />}</>);
 }

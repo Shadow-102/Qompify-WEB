@@ -3,8 +3,9 @@ import GradientASCII from './GradientASCII.jsx';
 import { CATS, PARTS, BY, LOOK, dn, TIERS, SEEDS, GAMES, fpsEff, offers, best, fmt, spec, check, power, rec } from './data.js';
 import logo from './assets/logo.png';
 import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles } from './extra.jsx';
+import { Benchmarks } from './bench.jsx';
 
-const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita']];
+const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita']];
 const AKEY = 'qompify.alerts.v1';
 const KEY = 'qompify.saved.v1';
 const LBL = Object.fromEntries(CATS);
@@ -282,6 +283,15 @@ export default function App() {
   const [alerts, setAlerts] = useState(() => { try { return JSON.parse(localStorage.getItem(AKEY)) || {}; } catch { return {}; } });
   const setAlert = (id, target) => { setAlerts(al => { const n = { ...al }; if (target) n[id] = { target }; else delete n[id]; try { localStorage.setItem(AKEY, JSON.stringify(n)); } catch {} return n; }); say(target ? 'Cenu budeme hlídat' : 'Hlídání zrušeno'); };
   const hit = Object.entries(alerts).filter(([id, al]) => LOOK[id] && best(LOOK[id]).price <= al.target);
+  useEffect(() => {
+    const f = e => {
+      if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      if (e.target.closest?.('input,select,textarea,[role=radiogroup],[contenteditable]') || document.querySelector('.mwrap,.sheet.open')) return;
+      const keys = NAV.map(n => n[0]), cur = Math.max(0, keys.indexOf(location.hash.slice(2).split('?')[0] || 'builder'));
+      e.preventDefault(); location.hash = '/' + keys[(cur + (e.key === 'ArrowRight' ? 1 : -1) + keys.length) % keys.length];
+    };
+    addEventListener('keydown', f); return () => removeEventListener('keydown', f);
+  }, [page]);
   const [cmp, setCmp] = useState([]), [view, setView] = useState(null);
   const toggle = id => setCmp(c => (c.includes(id) ? c.filter(x => x !== id) : c.length && BY[c[0]].cat !== BY[id].cat ? [id] : [...c, id].slice(-3)));
   const ui = { cmp, toggle, show: ids => setView(ids) };
@@ -294,8 +304,9 @@ export default function App() {
           <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <sup>{saved.length}</sup> : null}</a>)}</nav>
         </header>
         {hit.length > 0 && <div className="banner" role="status">Cena klesla: {hit.map(([id, al]) => `${dn(LOOK[id])} (${fmt(best(LOOK[id]).price)}, cíl ${fmt(al.target)})`).join(' · ')}</div>}
+        <p className="hint">Tip: šipkami ← a → přepínáš mezi nástroji.</p>
         <main key={page} className="view">
-          {page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} />}
+          {page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles a={q.get('a')} /> : page === 'benchmarky' ? <Benchmarks /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} />}
         </main>
         <Footer />
       </div>

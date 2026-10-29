@@ -1,7 +1,9 @@
 import LIVE from './prices.json';
 export const CATS = [['cpu','Procesor'],['gpu','Grafická karta'],['ram','Paměť'],['mb','Základní deska'],['psu','Zdroj'],['case','Skříň'],['ssd','Úložiště']];
-export const GAMES = [['Cyberpunk 2077','1080p, vysoké',1],['Black Myth: Wukong','1080p, vysoké',0.62],['Alan Wake 2','1080p, vysoké',0.55],['Hogwarts Legacy','1080p, vysoké',0.85],["Baldur's Gate 3",'1080p, vysoké',1.15],['Forza Horizon 5','1080p, vysoké',1.6],['Fortnite','1080p, střední',2.1],['Counter-Strike 2','1080p, nízké',3.6],['Valorant','1080p, nízké',4.4]];
+export const GFX = ['Nízké', 'Střední', 'Vysoké', 'Ultra'];
+export const GAMES = [['Cyberpunk 2077','1080p, vysoké',1,[1.9,1.4,1,0.68]],['Black Myth: Wukong','1080p, vysoké',0.62,[2.1,1.5,1,0.62]],['Alan Wake 2','1080p, vysoké',0.55,[2.0,1.45,1,0.6]],['Hogwarts Legacy','1080p, vysoké',0.85,[1.7,1.3,1,0.75]],["Baldur's Gate 3",'1080p, vysoké',1.15,[1.5,1.25,1,0.82]],['Forza Horizon 5','1080p, vysoké',1.6,[1.5,1.25,1,0.8]],['Fortnite','1080p, vysoké',1.9,[1.3,1.12,1,0.8]],['Counter-Strike 2','1080p, vysoké',3.1,[1.18,1.08,1,0.92]],['Valorant','1080p, vysoké',3.9,[1.1,1.05,1,0.95]]];
 export const fpsEff = (g, c, k) => Math.round(Math.min(g.sc, c.sc * 2.1) * k);
+export const fpsAt = (g, c, gi, res, li) => { const G = GAMES[gi]; return Math.round(Math.min(g.sc * G[2] * G[3][li] * RES_K[res], c.sc * 2.1 * G[2])); };
 // Ceny: v=1 ověřeno na českých e-shopech (Datart / Zboží.cz, 10/2026), v=0 orientační odhad.
 const cpu = (id,name,brand,price,v,s,n,th,fb,f,l3,tdp,ig,pcie,mem,nm,sc) => ({id,cat:'cpu',name,brand,price,v,s,n,th,fb,f,l3,tdp,ig,pcie,mem,nm,sc});
 const gpu = (id,name,brand,price,v,vram,vt,bus,tdp,len,pcie,pw,rt,fps) => ({id,cat:'gpu',name,brand,price,v,vram,vt,bus,tdp,len,pcie,pw,rt,fps,sc:fps[0]});
@@ -89,6 +91,29 @@ export const PARTS = [
   ssd('ssd-2t4-pro','Samsung 990 PRO 2 TB','Samsung',9990,0,2000,4,7450,6900,1200,'TLC, DRAM'),
   ssd('ssd-2t5','Crucial T705 2 TB','Crucial',12990,0,2000,5,14500,12700,1200,'TLC, DRAM'),
   ssd('ssd-4t4','WD Black SN850X 4 TB','WD',14990,0,4000,4,7300,6600,2400,'TLC, DRAM'),
+  cpu('r5-7500f','Ryzen 5 7500F','AMD',3990,0,'AM5',6,12,3.7,5.0,32,65,0,5,'DDR5',5,74),
+  cpu('r7-5700x','Ryzen 7 5700X','AMD',4990,0,'AM4',8,16,3.4,4.6,32,65,0,4,'DDR4',7,72),
+  cpu('i5-12600kf','Core i5-12600KF','Intel',5490,0,'LGA1700',10,16,3.7,4.9,20,125,0,5,'DDR4/DDR5',10,76),
+  cpu('i9-14900k','Core i9-14900K','Intel',14990,0,'LGA1700',24,32,3.2,6.0,36,125,1,5,'DDR4/DDR5',10,112),
+  cpu('u9-285k','Core Ultra 9 285K','Intel',14990,0,'LGA1851',24,24,3.7,5.7,36,125,1,5,'DDR5',3,115),
+  cpu('r9-7950x3d','Ryzen 9 7950X3D','AMD',15990,0,'AM5',16,32,4.2,5.7,128,120,1,5,'DDR5',5,118),
+  gpu('arc-b570','Arc B570 10GB','Intel',5990,0,10,'GDDR6',160,150,245,4,'1× 8-pin',1,[66,235,140]),
+  gpu('rx9060xt-8','Radeon RX 9060 XT 8GB','Gigabyte',8990,0,8,'GDDR6',128,150,250,5,'1× 8-pin',1,[85,320,190]),
+  gpu('rx7800xt','Radeon RX 7800 XT 16GB','Sapphire',14490,0,16,'GDDR6',256,263,300,4,'2× 8-pin',1,[110,400,250]),
+  ram('d4-32-3200','Kingston Fury Beast 32 GB (2×16) 3200','Kingston',7490,0,'DDR4',32,3200,16,'2×16','XMP',0),
+  ram('d5-16-6000','Kingston Fury Beast 16 GB (2×8) 6000','Kingston',6490,0,'DDR5',16,6000,36,'2×8','EXPO',0),
+  ram('d5-64-6400','Corsair Dominator Titanium 64 GB (2×32) 6400','Corsair',26990,0,'DDR5',64,6400,32,'2×32','XMP / EXPO',1),
+  mb('b550m','ASRock B550M-HDV','ASRock',2490,0,'AM4','DDR4','mATX','B550',1,0,'1 GbE',4),
+  mb('b760m','MSI PRO B760M-E','MSI',3290,0,'LGA1700','DDR5','mATX','B760',2,0,'1 GbE',4),
+  mb('b650m-wifi','Gigabyte B650M Gaming Wi-Fi','Gigabyte',4190,0,'AM5','DDR5','mATX','B650',2,1,'2.5 GbE',4),
+  psu('psu600','be quiet! System Power 10 600 W','be quiet!',1590,0,600,'80+ Bronze',0,'Ne',120,0),
+  psu('psu750b','Endorfy Vero L5 750 W','Endorfy',1890,0,750,'80+ Bronze',0,'Ne',120,0),
+  cs('c-q300l','Cooler Master MasterBox Q300L','Cooler Master',1390,0,360,['mATX'],157,'1× 120 mm',1,'Mini tower'),
+  cs('c-h5','NZXT H5 Flow','NZXT',2790,0,365,['mATX','ATX'],165,'2× 120 mm',1,'Midi tower'),
+  cs('c-meshify','Fractal Meshify 2 Compact','Fractal',3490,0,341,['mATX','ATX'],169,'2× 140 mm',1,'Midi tower'),
+  ssd('ssd-1t4-sn770','WD Black SN770 1 TB','WD',4290,0,1000,4,5150,4900,600,'TLC, bez DRAM'),
+  ssd('ssd-2t3','Kingston NV2 2 TB','Kingston',5490,0,2000,3,3500,2800,640,'TLC, bez DRAM'),
+  ssd('ssd-2t4-kc3000','Kingston KC3000 2 TB','Kingston',8490,0,2000,4,7000,7000,1600,'TLC, DRAM'),
 ];
 export const SPEC = {
   cpu: [['s','Socket'],['n','Jádra','',1],['th','Vlákna','',1],['fb','Základní takt','GHz',1],['f','Boost takt','GHz',1],['l3','L3 cache','MB',1],['tdp','TDP','W',-1],['ig','Integrovaná grafika','yn'],['pcie','PCIe','pcie'],['mem','Paměť'],['nm','Výrobní proces','nm',-1],['sc','Výkon (index)','',1]],
