@@ -1,0 +1,7 @@
+[
+  { "shop": "Alza",       "url": "VLOZ_URL_XML_FEEDU", "format": "heureka" },
+  { "shop": "Datart",     "url": "VLOZ_URL_XML_FEEDU", "format": "heureka" },
+  { "shop": "Mironet",    "url": "VLOZ_URL_XML_FEEDU", "format": "heureka" },
+  { "shop": "TS Bohemia", "url": "VLOZ_URL_XML_FEEDU", "format": "heureka" },
+  { "shop": "CZC.cz",     "url": "VLOZ_URL_XML_FEEDU", "format": "heureka" }
+]

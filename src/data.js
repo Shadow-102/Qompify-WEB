@@ -1,5 +1,7 @@
+import LIVE from './prices.json';
 export const CATS = [['cpu','Procesor'],['gpu','Grafická karta'],['ram','Paměť'],['mb','Základní deska'],['psu','Zdroj'],['case','Skříň'],['ssd','Úložiště']];
-export const GAMES = [['Cyberpunk 2077','1080p, vysoké'],['Counter-Strike 2','1080p, nízké'],['Fortnite','1080p, střední']];
+export const GAMES = [['Cyberpunk 2077','1080p, vysoké',1],['Black Myth: Wukong','1080p, vysoké',0.62],['Alan Wake 2','1080p, vysoké',0.55],['Hogwarts Legacy','1080p, vysoké',0.85],["Baldur's Gate 3",'1080p, vysoké',1.15],['Forza Horizon 5','1080p, vysoké',1.6],['Fortnite','1080p, střední',2.1],['Counter-Strike 2','1080p, nízké',3.6],['Valorant','1080p, nízké',4.4]];
+export const fpsEff = (g, c, k) => Math.round(Math.min(g.sc, c.sc * 2.1) * k);
 // Ceny: v=1 ověřeno na českých e-shopech (Datart / Zboží.cz, 10/2026), v=0 orientační odhad.
 const cpu = (id,name,brand,price,v,s,n,th,fb,f,l3,tdp,ig,pcie,mem,nm,sc) => ({id,cat:'cpu',name,brand,price,v,s,n,th,fb,f,l3,tdp,ig,pcie,mem,nm,sc});
 const gpu = (id,name,brand,price,v,vram,vt,bus,tdp,len,pcie,pw,rt,fps) => ({id,cat:'gpu',name,brand,price,v,vram,vt,bus,tdp,len,pcie,pw,rt,fps,sc:fps[0]});
@@ -112,6 +114,8 @@ const hs = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 const OUT = new Set(['rtx5090','i7-14700kf','d5-96','psu1200','ssd-1t5','b550','r9-9950x3d']);
 const cache = new Map();
 export const offers = p => {
+  const live = LIVE.items?.[p.id]?.shops;
+  if (live && Object.keys(live).length) return RETAILERS.filter(([n]) => live[n]).map(([n, u]) => ({ n, price: live[n].price, stock: live[n].stock !== false, url: u(encodeURIComponent(dn(p))), live: true }));
   if (!cache.has(p.id)) cache.set(p.id, RETAILERS.map(([n, u, b]) => {
     const r = hs(p.id + n);
     return { n, price: Math.round(p.price * (1 + b + ((r % 40) - 15) / 1000) / 10) * 10, stock: !OUT.has(p.id) && r % 7 !== 0, url: u(encodeURIComponent(dn(p))) };
@@ -142,6 +146,7 @@ export function check(o) {
   }
   if (gpu && cs) r.push(gpu.len <= cs.mg ? { l: 'ok', t: `Karta ${gpu.len} mm se vejde (limit ${cs.mg} mm)` } : { l: 'bad', t: `Karta ${gpu.len} mm je delší než limit skříně ${cs.mg} mm` });
   if (mb && cs) r.push(cs.ff.includes(mb.ff) ? { l: 'ok', t: `Deska ${mb.ff} sedí do skříně` } : { l: 'bad', t: `Skříň nepojme desku ${mb.ff}` });
+  if (cpu && gpu) { const q = gpu.sc / cpu.sc; r.push(q > 2.1 ? { l: 'warn', t: `Procesor může brzdit grafiku (odhad −${Math.round((1 - 2.1 / q) * 100)} % výkonu)` } : q < 0.42 ? { l: 'warn', t: 'Procesor je pro tuto grafiku předimenzovaný, část výkonu nevyužiješ' } : { l: 'ok', t: 'Procesor a grafika jsou vyvážené' }); }
   return r.length ? r : [{ l: 'idle', t: 'Vyber díly a Qompify začne kontrolovat kompatibilitu' }];
 }
 export const TIERS = [
@@ -156,3 +161,75 @@ export const SEEDS = [
   { id: 's3', name: 'Streamovací monstrum', by: 'lenka_pc', likes: 211, ids: ['r9-9950x','rtx5080','d5-64','x870e','psu1000','c-lian','ssd-4t4'] },
   { id: 's4', name: 'Intel ve čtyřiceti', by: 'jakub.b', likes: 54, ids: ['i5-14600kf','rx9070','d5-32','b760','psu650','c-xl','ssd-1t4'] },
 ];
+
+const mon = (id,name,brand,price,v,size,res,panel,hz,ms,hdr,tags) => ({ id, cat: 'monitor', name, brand, price, v, size, res, panel, hz, ms, hdr, tags });
+export const RES_K = { FHD: 1, QHD: 0.72, UWQHD: 0.62, '4K': 0.42 };
+export const MONITORS = [
+  mon('mon-aoc-24b3ha2','AOC 24B3HA2','AOC',2490,0,24,'FHD','IPS',100,4,0,['office']),
+  mon('mon-msi-272f','MSI MAG 272F X24','MSI',2990,1,27,'FHD','Fast IPS',240,1,0,['esport','gaming']),
+  mon('mon-odyssey-g5','Samsung Odyssey G5 27"','Samsung',3490,1,27,'QHD','VA',180,1,0,['gaming']),
+  mon('mon-aoc-q27g4zr','AOC Q27G4ZR','AOC',3999,1,27,'QHD','Fast IPS',260,0.5,0,['gaming','esport']),
+  mon('mon-aoc-c27g2z3','AOC C27G2Z3 Gaming','AOC',4190,1,27,'FHD','VA',240,0.5,0,['esport']),
+  mon('mon-samsung-s6','Samsung ViewFinity S6 27"','Samsung',5990,0,27,'QHD','IPS',100,5,0,['office','work']),
+  mon('mon-viewsonic-xg275d1','ViewSonic XG275D1-4K','ViewSonic',7799,1,27,'4K','Fast IPS',160,0.5,1,['gaming','work']),
+  mon('mon-lg-27up850n','LG UltraFine 27UP850N','LG',9990,0,27,'4K','IPS',60,5,1,['work']),
+  mon('mon-dell-u2724d','Dell UltraSharp U2724D','Dell',10990,0,27,'QHD','IPS Black',120,5,1,['work']),
+  mon('mon-gigabyte-mo27q2a','Gigabyte MO27Q2A','Gigabyte',11892,1,27,'QHD','QD-OLED',280,0.03,1,['gaming','esport']),
+  mon('mon-msi-321upx','MSI MAG 321UPX QD-OLED','MSI',14391,1,32,'4K','QD-OLED',240,0.03,1,['gaming']),
+  mon('mon-aoc-ag276uzd','AOC AGON AG276UZD','AOC',14693,1,27,'4K','QD-OLED',240,0.03,1,['gaming']),
+  mon('mon-aoc-ag326ud','AOC AGON AG326UD','AOC',14712,1,32,'4K','QD-OLED',165,0.03,1,['gaming','work']),
+  mon('mon-msi-321urxw','MSI MPG 321URXW','MSI',14994,1,32,'4K','QD-OLED',240,0.03,1,['gaming']),
+  mon('mon-dell-aw3225qf','Dell Alienware AW3225QF','Dell',18891,1,32,'4K','QD-OLED',240,0.03,1,['gaming']),
+  mon('mon-aorus-fo32u2p','Gigabyte AORUS FO32U2P','Gigabyte',18891,1,32,'4K','QD-OLED',240,0.03,1,['gaming','work']),
+  mon('mon-philips-32m2n','Philips Evnia 32M2N6901A','Philips',21190,1,32,'4K','QD-OLED',165,0.03,1,['work','gaming']),
+];
+export const LOOK = { ...BY, ...Object.fromEntries(MONITORS.map(m => [m.id, m])) };
+
+const hcache = new Map();
+export const history = p => {
+  if (hcache.has(p.id)) return hcache.get(p.id);
+  const cur = best(p).price, live = LIVE.items?.[p.id]?.hist, day = 864e5;
+  let out;
+  if (live && live.length > 2) out = [...live.map(([d, v]) => ({ d, v })), { d: new Date().toISOString().slice(0, 10), v: cur }];
+  else {
+    let s = [...p.id].reduce((a, c) => (a * 33 + c.charCodeAt(0)) >>> 0, 5), v = cur;
+    const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296, tr = { ram: 0.0055, ssd: 0.004, gpu: 0.0004 }[p.cat] ?? -0.0002, dip = s % 4 === 0;
+    const a = Array(90);
+    for (let i = 89; i >= 0; i--) { a[i] = v; v = v / (1 + tr + (rnd() - 0.5) * 0.02); }
+    if (dip) for (let i = 83; i < 89; i++) a[i] *= 1.1 + rnd() * 0.1;
+    a[89] = cur;
+    out = a.map((x, i) => ({ d: new Date(Date.now() - (89 - i) * day).toISOString().slice(0, 10), v: Math.round(x / 10) * 10 }));
+  }
+  hcache.set(p.id, out); return out;
+};
+export const deals = () => PARTS.filter(p => offers(p).some(o => o.stock)).map(p => {
+  const h = history(p), avg = h.slice(-31, -1).reduce((a, x) => a + x.v, 0) / 30, b = best(p);
+  return { p, pr: b.price, shop: b.n, pct: Math.round((1 - b.price / avg) * 100) };
+}).filter(x => x.pct >= 3).sort((a, b) => b.pct - a.pct).slice(0, 12);
+
+export function optimize(budget, use, brand) {
+  const L = c => PARTS.filter(p => p.cat === c), pr = p => best(p).price;
+  const cheap = a => (a.length ? a.reduce((x, y) => (pr(y) < pr(x) ? y : x)) : null);
+  const gpus = use === 'office' ? [null] : use === 'work' ? [null, ...L('gpu')] : L('gpu');
+  const out = []; let min = Infinity;
+  for (const c of L('cpu')) {
+    if ((brand && c.brand !== brand) || (use === 'office' && !c.ig)) continue;
+    const board = cheap(L('mb').filter(m => m.s === c.s)); if (!board) continue;
+    const rams = [16, 32].map(g => cheap(L('ram').filter(r => r.t === board.t && c.mem.includes(r.t) && r.gb >= g && r.gb <= g * 2))).filter(Boolean);
+    const ssds = [500, 1000, 2000].map(g => cheap(L('ssd').filter(s => s.gb >= g && s.gb <= g * 2))).filter(Boolean);
+    for (const g of gpus) for (const ram of rams) for (const s of ssds) {
+      const o = { cpu: c, mb: board, ram, ssd: s }; if (g) o.gpu = g;
+      const psu = cheap(L('psu').filter(p => p.w >= rec(power(o)))), cs = cheap(L('case').filter(k => k.ff.includes(board.ff) && (!g || k.mg >= g.len)));
+      if (!psu || !cs) continue; o.psu = psu; o.case = cs;
+      if (check(o).some(r => r.l === 'bad')) continue;
+      const tot = Object.values(o).reduce((a, p) => a + pr(p), 0); min = Math.min(min, tot); if (tot > budget) continue;
+      const gs = g ? g.sc : 18, q = g ? g.sc / c.sc : 0;
+      const sc = (use === 'gaming' ? 0.72 * gs + 0.28 * c.sc - (q > 2.1 ? 25 : 0) : use === 'work' ? 0.25 * gs + 0.75 * (c.sc + c.th * 0.8) : c.sc * 0.6 - tot / 700) + (ram.gb >= 32 ? (use === 'work' ? 8 : 3) : 0) + (s.gb >= 2000 ? 1.5 : 0) + (s.gb >= 1000 ? 2 : 0);
+      out.push({ o, tot, score: sc });
+    }
+  }
+  out.sort((a, b) => b.score - a.score);
+  const seen = new Set(), list = [];
+  for (const r of out) { const k = r.o.cpu.id + (r.o.gpu?.id || ''); if (seen.has(k)) continue; seen.add(k); list.push(r); if (list.length === 3) break; }
+  return { list, min };
+}

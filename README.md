@@ -1,12 +1,26 @@
 # Qompify
 
-Stavitel PC, srovnávač cen a kontrola kompatibility pro český trh (React).
+Stavitel PC, srovnávač cen, kontrola kompatibility, optimalizátor rozpočtu a články (React).
 
 ## Nasazení (GitHub Pages)
-Hotový web je commitnutý ve složce `docs/` a kořenový `index.html` ho načítá, takže funguje
-jak se zdrojem **Deploy from a branch → main → / (root)**, tak **/docs**. Žádný GitHub Actions není potřeba.
+Hotový web je ve složce `docs/`, kořenový `index.html` ho načítá. Settings → Pages → Deploy from a branch → main → / (root).
 
 ## Úpravy kódu
     npm install
     npm run build      # přegeneruje docs/app.js a docs/app.css
-Pak commit a push. Díly a ceny: `src/data.js`, affiliate odkazy: `RETAILERS` v `src/data.js`.
+Pak commit a push. Díly a ceny: `src/data.js`.
+
+## Živé ceny
+1. Do `scripts/feeds.json` vlož URL XML feedů (formát Heureka / Zboží.cz) z affiliate sítě obchodů.
+   Chceš-li URL skrýt, ulož celé JSON pole do GitHub secretu `FEEDS_JSON`.
+2. `npm run prices && npm run build` (ručně), nebo nech běžet denní workflow `.github/workflows/prices.yml`.
+3. Špatně spárovaný díl oprav v `scripts/overrides.json`: `{ "id-dilu": ["klíčová", "slova"] }`.
+Skript zapisuje `src/prices.json` včetně historie cen; graf cen ji použije, jakmile má víc než 2 dny dat.
+
+## Živé ceny (volitelné)
+1. Vyplň `scripts/feeds.json` URL XML feedů (formát Heureka / Zboží.cz) nebo je ulož do GitHub secretu `FEEDS_JSON`
+   (Settings → Secrets and variables → Actions) jako stejné JSON pole.
+2. Ručně: `npm install && npm run prices && npm run build`, pak commit a push.
+3. Automaticky: workflow `.github/workflows/prices.yml` běží denně v 5:00 UTC, aktualizuje `src/prices.json`, přebuilduje `docs/` a commitne.
+4. Díly se párují podle názvu; pro problémové kusy přidej klíčová slova do `scripts/overrides.json` (`{"id-dilu": ["ryzen","9800x3d"]}`).
+Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf používá simulovaná data.

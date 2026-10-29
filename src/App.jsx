@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import GradientASCII from './GradientASCII.jsx';
-import { CATS, PARTS, BY, SPEC, showVal, perf, dn, TIERS, SEEDS, GAMES, offers, best, fmt, spec, check, power, rec } from './data.js';
+import { CATS, PARTS, BY, LOOK, dn, TIERS, SEEDS, GAMES, fpsEff, offers, best, fmt, spec, check, power, rec } from './data.js';
 import logo from './assets/logo.png';
+import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles } from './extra.jsx';
 
-const NAV = [['builder', 'Stavitel PC'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['komunita', 'Komunita']];
+const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita']];
+const AKEY = 'qompify.alerts.v1';
 const KEY = 'qompify.saved.v1';
 const LBL = Object.fromEntries(CATS);
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
@@ -30,34 +32,10 @@ function useTween(v) {
   return x;
 }
 
-const Badge = ({ l, t }) => <li className={`badge ${l}`}><i />{t}</li>;
-const Head = ({ title, sub }) => <section className="hero slim"><h1>{title}</h1><p>{sub}</p></section>;
-
-function Offers({ p }) {
-  const os = offers(p).slice().sort((a, b) => a.price - b.price), low = os.find(o => o.stock);
-  return (
-    <ul className="offers">
-      {os.map(x => (
-        <li key={x.n} className={!x.stock ? 'out' : x === low ? 'low' : ''}>
-          <span>{x.n}</span><b>{fmt(x.price)}</b><em>{x.stock ? (x === low ? 'Nejlevnější' : 'Skladem') : 'Není skladem'}</em>
-          <a href={x.url} target="_blank" rel="sponsored noopener noreferrer">Koupit</a>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function Share({ ids, title, copy }) {
   if (!ids.length) return null;
-  const url = linkOf(ids), text = `${title} ${url}`;
-  return (
-    <div className="share">
-      <button onClick={() => copy(url, 'Odkaz zkopírován')}>Odkaz</button>
-      <a href={`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`} target="_blank" rel="noopener noreferrer">Reddit</a>
-      <button onClick={() => copy(text, 'Zkopírováno, vlož do Discordu')}>Discord</button>
-      <button onClick={() => copy(text, 'Zkopírováno, vlož do TikToku')}>TikTok</button>
-    </div>
-  );
+  const url = linkOf(ids);
+  return <div className="share"><button onClick={() => copy(url, 'Odkaz zkopírován')}>Kopírovat odkaz</button></div>;
 }
 
 function Sheet({ cat, sel, onClose, onPick, ui }) {
@@ -113,6 +91,7 @@ function Builder({ sel, setSel, add, save, copy, ui }) {
         <h1>Poskládej PC, které nastartuje na první pokus.</h1>
         <p>Vyber díly. Qompify hlídá socket, zdroj i délku grafiky a hledá nejnižší cenu v pěti českých e-shopech.</p>
       </section>
+      <DealsBar ui={ui} />
       <div className="builder">
         <section className="card slots">
           <h2>Tvoje sestava</h2>
@@ -150,7 +129,7 @@ function Builder({ sel, setSel, add, save, copy, ui }) {
           </section>
           <section className="card cmp">
             <h2>{fp ? dn(fp) : 'Porovnání cen'}</h2>
-            {fp ? <><p className="muted">{spec(fp)}</p><Offers p={fp} /></> : <p className="muted">Vyber první díl a uvidíš ceny z Alzy, Smarty, TS Bohemia, Mironetu a CZC.</p>}
+            {fp ? <><p className="muted">{spec(fp)}</p><Offers p={fp} /></> : <p className="muted">Vyber první díl a uvidíš ceny z Alzy, Datartu, Mironetu, TS Bohemia a CZC.</p>}
           </section>
         </aside>
       </div>
@@ -162,7 +141,8 @@ function Builder({ sel, setSel, add, save, copy, ui }) {
 function Tiers({ go, save }) {
   const rows = useMemo(() => TIERS.map(t => {
     const sel = selOf(t.ids), o = objs(sel), tot = total(sel);
-    return { ...t, sel, o, tot, res: check(o), fps: o.gpu.fps.map(f => (f / tot) * 1000) };
+    const fpsv = GAMES.map(([, , k]) => fpsEff(o.gpu, o.cpu, k));
+    return { ...t, sel, o, tot, res: check(o), fpsv, fps: fpsv.map(f => (f / tot) * 1000) };
   }), []);
   const mx = GAMES.map((_, i) => Math.max(...rows.map(r => r.fps[i])));
   return (
@@ -177,7 +157,7 @@ function Tiers({ go, save }) {
             <div className="fps">
               {GAMES.map(([g, q], i) => (
                 <div key={g}>
-                  <div className="row"><span>{g} <small>{q}</small></span><span>{r.o.gpu.fps[i]} FPS · {r.fps[i].toFixed(1)} FPS / 1 000 Kč</span></div>
+                  <div className="row"><span>{g} <small>{q}</small></span><span>{r.fpsv[i]} FPS · {r.fps[i].toFixed(1)} FPS / 1 000 Kč</span></div>
                   <i className="bar"><b style={{ '--w': (r.fps[i] / mx[i]) * 100 + '%' }} /></i>
                 </div>
               ))}
@@ -230,7 +210,7 @@ function Catalog({ add, say, ui }) {
   );
 }
 
-function Community({ saved, persist, go, copy }) {
+function Community({ saved, persist, go, copy, alerts, setAlert }) {
   const [liked, setLiked] = useState({});
   const card = (b, mine) => {
     const sel = selOf(b.ids), tot = total(sel), ok = check(objs(sel)).every(r => r.l === 'ok'), o = objs(sel);
@@ -253,42 +233,16 @@ function Community({ saved, persist, go, copy }) {
       <Head title="Uložené sestavy a komunita" sub="Ukládej si konfigurace, posílej je kamarádům a nech se inspirovat sestavami ostatních." />
       <h2 className="sec">Moje sestavy</h2>
       <div className="tiers">{saved.length ? saved.map(b => card(b, true)) : <div className="card empty">Zatím nic uloženého. Sestav PC ve Stavitelu a stiskni Uložit sestavu.</div>}</div>
+      <h2 className="sec">Hlídané ceny</h2>
+      <div className="tiers">{Object.keys(alerts).length ? Object.entries(alerts).map(([id, al]) => LOOK[id] && (
+        <article className="card build" key={id}>
+          <header><h2>{dn(LOOK[id])}</h2><b>{fmt(best(LOOK[id]).price)}</b></header>
+          <p className="muted">Cíl {fmt(al.target)} · {best(LOOK[id]).price <= al.target ? 'cíl splněn, cena je pod hranicí' : 'zatím nad cílem'}</p>
+          <div className="actions"><button className="ghost" onClick={() => setAlert(id, null)}>Zrušit hlídání</button></div>
+        </article>)) : <div className="card empty">Zatím nic nehlídáš. Otevři Detail dílu a nastav cílovou cenu.</div>}</div>
       <h2 className="sec">Sestavy z komunity</h2>
       <div className="tiers">{SEEDS.map(b => card(b, false))}</div>
     </>
-  );
-}
-
-function Compare({ ids, sel, add, say, onClose }) {
-  const ps = ids.map(i => BY[i]), cat = ps[0].cat, rows = SPEC[cat], o = objs(sel), cur = o[cat], multi = ps.length > 1;
-  useEffect(() => { const f = e => e.key === 'Escape' && onClose(); addEventListener('keydown', f); return () => removeEventListener('keydown', f); }, [onClose]);
-  const win = (k, d) => { if (!d || !multi) return -1; const v = ps.map(p => p[k]); if (v.some(x => typeof x !== 'number') || new Set(v).size === 1) return -1; return v.indexOf(d > 0 ? Math.max(...v) : Math.min(...v)); };
-  const info = ps.map(p => { const res = check({ ...o, [cat]: p }), pr = best(p).price, pf = perf(p); return { p, pr, pf, vpm: pf ? (pf / pr) * 1000 : 0, bad: res.filter(r => r.l === 'bad'), warn: res.filter(r => r.l === 'warn') }; });
-  const top = (f, hi) => info.reduce((x, y) => ((hi ? f(y) > f(x) : f(y) < f(x)) ? y : x));
-  const cheap = top(i => i.pr, false), fast = info.some(i => i.pf) ? top(i => i.pf, true) : null, val = info.some(i => i.vpm) ? top(i => i.vpm, true) : null;
-  const mine = Object.keys(sel).length;
-  return (
-    <div className="mwrap" role="dialog" aria-label="Detail a porovnání">
-      <div className="scrim" onClick={onClose} />
-      <div className="modal">
-        <header><h2>{multi ? `Porovnání: ${LBL[cat]}` : 'Detail dílu'}</h2><button className="ghost" onClick={onClose}>Zavřít</button></header>
-        {multi && <ul className="verdict"><li>Nejlevnější: <b>{dn(cheap.p)}</b></li>{fast && <li>Nejvyšší výkon: <b>{dn(fast.p)}</b></li>}{val && <li>Nejlepší cena/výkon: <b>{dn(val.p)}</b></li>}</ul>}
-        <div className="tw"><table>
-          <thead><tr><th />{info.map(i => <th key={i.p.id}>{dn(i.p)}<small>{i.p.v ? 'Ověřená cena (CZ e-shopy, 10/2026)' : 'Orientační cena'}</small></th>)}</tr></thead>
-          <tbody>
-            <tr><td>Nejnižší cena</td>{info.map(i => <td key={i.p.id} className={multi && i === cheap ? 'win' : ''}><b>{fmt(i.pr)}</b></td>)}</tr>
-            {rows.map(([k, l, u, d]) => { const w = win(k, d); return <tr key={k}><td>{l}</td>{ps.map((p, j) => <td key={p.id} className={w === j ? 'win' : ''}>{showVal(p[k], u)}</td>)}</tr>; })}
-            <tr className="for"><td>Pro tvou sestavu</td>{info.map(i => (
-              <td key={i.p.id}>
-                {i.bad.length ? <span className="bad">Nekompatibilní: {i.bad.map(b => b.t).join('; ')}</span> : i.warn.length ? <span>Sedí, ale: {i.warn.map(b => b.t).join('; ')}</span> : <span>{mine ? 'Sedí do tvé sestavy.' : 'Sestava je zatím prázdná, nic k ověření.'}</span>}
-                {cur && cur.id !== i.p.id && <small>{i.pr - best(cur).price >= 0 ? '+' : ''}{fmt(i.pr - best(cur).price)} oproti {dn(cur)}{i.pf && perf(cur) ? `, výkon ${i.pf >= perf(cur) ? '+' : ''}${Math.round((i.pf / perf(cur) - 1) * 100)} %` : ''}</small>}
-              </td>))}</tr>
-            <tr><td>Ceny v obchodech</td>{ps.map(p => <td key={p.id}><Offers p={p} /></td>)}</tr>
-            <tr><td /> {ps.map(p => <td key={p.id}><button className="btn" onClick={() => { add(p.id); say(`${p.name} přidán do stavitele`); onClose(); }}>Do sestavy</button></td>)}</tr>
-          </tbody>
-        </table></div>
-      </div>
-    </div>
   );
 }
 
@@ -301,11 +255,11 @@ function Footer() {
       </div>
       <div>
         <h3>Partnerské odkazy</h3>
-        <p>Odkazy „Koupit“ vedou do e-shopů Alza, Smarty, TS Bohemia, Mironet a CZC.cz. Za nákup přes ně můžeme získat provizi, cena se pro tebe nezmění.</p>
+        <p>Odkazy „Koupit“ vedou do e-shopů Alza, Datart, Mironet, TS Bohemia a CZC.cz. Za nákup přes ně můžeme získat provizi, cena se pro tebe nezmění.</p>
       </div>
       <div>
         <h3>Ceny a dostupnost</h3>
-        <p>Ceny v této verzi jsou demonstrační a slouží k předvedení srovnávače. Před nákupem vždy ověř aktuální cenu a skladovost na stránce obchodu.</p>
+        <p>Část cen je ověřená na českých e-shopech (10/2026), zbytek jsou odhady a rozdíly mezi obchody jsou simulované, dokud nenapojíš živé feedy. Před nákupem vždy ověř cenu a skladovost u obchodu.</p>
       </div>
       <p className="legal">© {new Date().getFullYear()} Qompify. Názvy produktů a značek patří jejich vlastníkům.</p>
     </footer>
@@ -325,6 +279,9 @@ export default function App() {
   const copy = async (text, msg) => { try { await navigator.clipboard.writeText(text); say(msg); } catch { say('Kopírování se nepovedlo'); } };
   const save = (name, s) => { persist([{ id: Date.now(), name: name || 'Moje sestava', ids: Object.values(s), at: new Date().toLocaleDateString('cs-CZ') }, ...saved]); say('Sestava uložena'); };
   const add = id => setSel(s => ({ ...s, [BY[id].cat]: id }));
+  const [alerts, setAlerts] = useState(() => { try { return JSON.parse(localStorage.getItem(AKEY)) || {}; } catch { return {}; } });
+  const setAlert = (id, target) => { setAlerts(al => { const n = { ...al }; if (target) n[id] = { target }; else delete n[id]; try { localStorage.setItem(AKEY, JSON.stringify(n)); } catch {} return n; }); say(target ? 'Cenu budeme hlídat' : 'Hlídání zrušeno'); };
+  const hit = Object.entries(alerts).filter(([id, al]) => LOOK[id] && best(LOOK[id]).price <= al.target);
   const [cmp, setCmp] = useState([]), [view, setView] = useState(null);
   const toggle = id => setCmp(c => (c.includes(id) ? c.filter(x => x !== id) : c.length && BY[c[0]].cat !== BY[id].cat ? [id] : [...c, id].slice(-3)));
   const ui = { cmp, toggle, show: ids => setView(ids) };
@@ -336,12 +293,13 @@ export default function App() {
           <a className="brand" href="#/builder"><img src={logo} alt="" /><span>Qompify</span></a>
           <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <sup>{saved.length}</sup> : null}</a>)}</nav>
         </header>
+        {hit.length > 0 && <div className="banner" role="status">Cena klesla: {hit.map(([id, al]) => `${dn(LOOK[id])} (${fmt(best(LOOK[id]).price)}, cíl ${fmt(al.target)})`).join(' · ')}</div>}
         <main key={page} className="view">
-          {page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} />}
+          {page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} />}
         </main>
         <Footer />
       </div>
-      {view && <Compare ids={view} sel={sel} add={add} say={say} onClose={() => setView(null)} />}
+      {view && <Compare ids={view} sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} onClose={() => setView(null)} />}
       {cmp.length > 0 && !view && <div className="tray"><span>Porovnání: {cmp.map(i => dn(BY[i])).join(' · ')}</span><button className="btn" disabled={cmp.length < 2} onClick={() => setView(cmp)}>Porovnat ({cmp.length})</button><button className="ghost" onClick={() => setCmp([])}>Zrušit</button></div>}
       <div className={`toast${toast ? ' on' : ''}`} role="status">{toast}</div>
     </>
