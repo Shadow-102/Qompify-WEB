@@ -18,33 +18,33 @@ export const PARTS = [
   cpu('i5-12400f','Core i5-12400F','Intel',3290,0,'LGA1700',6,12,2.5,4.4,18,65,0,5,'DDR4/DDR5',10,64),
   cpu('i5-13400f','Core i5-13400F','Intel',4490,0,'LGA1700',10,16,2.5,4.6,20,65,0,5,'DDR4/DDR5',10,72),
   cpu('r5-7600','Ryzen 5 7600','AMD',4590,0,'AM5',6,12,3.8,5.1,32,65,1,5,'DDR5',5,76),
-  cpu('r5-9600x','Ryzen 5 9600X','AMD',4990,1,'AM5',6,12,3.9,5.4,32,65,1,5,'DDR5',4,85),
+  cpu('r5-9600x','Ryzen 5 9600X','AMD',4498,1,'AM5',6,12,3.9,5.4,32,65,1,5,'DDR5',4,85),
   cpu('r5-5700x3d','Ryzen 7 5700X3D','AMD',5490,0,'AM4',8,16,3.0,4.1,96,105,0,4,'DDR4',7,80),
   cpu('r7-7700','Ryzen 7 7700','AMD',6290,0,'AM5',8,16,3.8,5.3,32,65,1,5,'DDR5',5,84),
   cpu('i5-14600kf','Core i5-14600KF','Intel',7490,0,'LGA1700',14,20,3.5,5.3,24,125,0,5,'DDR4/DDR5',10,90),
   cpu('r7-9700x','Ryzen 7 9700X','AMD',7490,0,'AM5',8,16,3.8,5.5,32,65,1,5,'DDR5',4,92),
-  cpu('u5-245k','Core Ultra 5 245K','Intel',6990,0,'LGA1851',14,14,4.2,5.2,24,125,1,5,'DDR5',3,92),
-  cpu('r7-7800x3d','Ryzen 7 7800X3D','AMD',9990,0,'AM5',8,16,4.2,5.0,96,120,1,5,'DDR5',5,100),
+  cpu('u5-245k','Core Ultra 5 245K','Intel',4990,0,'LGA1851',14,14,4.2,5.2,24,125,1,5,'DDR5',3,92),
+  cpu('r7-7800x3d','Ryzen 7 7800X3D','AMD',8790,0,'AM5',8,16,4.2,5.0,96,120,1,5,'DDR5',5,100),
   cpu('r9-9900x','Ryzen 9 9900X','AMD',9990,0,'AM5',12,24,4.4,5.6,64,120,1,5,'DDR5',4,108),
   cpu('i7-14700kf','Core i7-14700KF','Intel',9990,0,'LGA1700',20,28,3.4,5.6,33,125,0,5,'DDR4/DDR5',10,102),
-  cpu('u7-265k','Core Ultra 7 265K','Intel',9990,0,'LGA1851',20,20,3.9,5.5,30,125,1,5,'DDR5',3,108),
-  cpu('r7-9800x3d','Ryzen 7 9800X3D','AMD',10990,1,'AM5',8,16,4.7,5.2,96,120,1,5,'DDR5',4,112),
-  cpu('r9-9950x','Ryzen 9 9950X','AMD',14490,0,'AM5',16,32,4.3,5.7,64,170,1,5,'DDR5',4,120),
-  cpu('r9-9950x3d','Ryzen 9 9950X3D','AMD',17990,0,'AM5',16,32,4.3,5.7,128,170,1,5,'DDR5',4,128),
-  gpu('rx6600','Radeon RX 6600 8GB','Sapphire',5490,0,8,'GDDR6',128,132,245,4,'1× 8-pin',1,[62,240,150]),
-  gpu('rtx5050','GeForce RTX 5050 8GB','MSI',6490,0,8,'GDDR6',128,130,230,5,'1× 8-pin',1,[64,250,150]),
-  gpu('arc-b580','Arc B580 12GB','Intel',6990,0,12,'GDDR6',192,190,272,4,'1× 8-pin',1,[74,260,160]),
-  gpu('rx7600','Radeon RX 7600 8GB','Gigabyte',7490,0,8,'GDDR6',128,165,240,4,'1× 8-pin',1,[70,270,165]),
-  gpu('rtx5060','GeForce RTX 5060 8GB','ASUS',7990,1,8,'GDDR7',128,145,240,5,'1× 8-pin',1,[80,310,185]),
-  gpu('rtx5060ti-8','GeForce RTX 5060 Ti 8GB','Gigabyte',8490,0,8,'GDDR7',128,180,260,5,'1× 8-pin',1,[100,370,225]),
-  gpu('rx9060xt-16','Radeon RX 9060 XT 16GB','Sapphire',10490,1,16,'GDDR6',128,160,270,5,'1× 8-pin',1,[90,330,200]),
-  gpu('rtx5060ti-16','GeForce RTX 5060 Ti 16GB','ASUS',12490,0,16,'GDDR7',128,180,304,5,'1× 8-pin',1,[105,380,230]),
-  gpu('rtx5070','GeForce RTX 5070 12GB','MSI',15990,0,12,'GDDR7',192,250,300,5,'1× 12V-2x6',1,[125,430,270]),
-  gpu('rx9070','Radeon RX 9070 16GB','PowerColor',17490,0,16,'GDDR6',256,220,300,5,'2× 8-pin',1,[120,420,260]),
-  gpu('rx9070xt','Radeon RX 9070 XT 16GB','Sapphire',21990,0,16,'GDDR6',256,304,320,5,'3× 8-pin',1,[140,450,290]),
+  cpu('u7-265k','Core Ultra 7 265K','Intel',7490,0,'LGA1851',20,20,3.9,5.5,30,125,1,5,'DDR5',3,108),
+  cpu('r7-9800x3d','Ryzen 7 9800X3D','AMD',10260,1,'AM5',8,16,4.7,5.2,96,120,1,5,'DDR5',4,112),
+  cpu('r9-9950x','Ryzen 9 9950X','AMD',12490,0,'AM5',16,32,4.3,5.7,64,170,1,5,'DDR5',4,120),
+  cpu('r9-9950x3d','Ryzen 9 9950X3D','AMD',17490,0,'AM5',16,32,4.3,5.7,128,170,1,5,'DDR5',4,128),
+  gpu('rx6600','Radeon RX 6600 8GB','Sapphire',6990,0,8,'GDDR6',128,132,245,4,'1× 8-pin',1,[62,240,150]),
+  gpu('rtx5050','GeForce RTX 5050 8GB','MSI',10590,1,8,'GDDR6',128,130,230,5,'1× 8-pin',1,[64,250,150]),
+  gpu('arc-b580','Arc B580 12GB','Intel',7990,0,12,'GDDR6',192,190,272,4,'1× 8-pin',1,[74,260,160]),
+  gpu('rx7600','Radeon RX 7600 8GB','Gigabyte',8490,0,8,'GDDR6',128,165,240,4,'1× 8-pin',1,[70,270,165]),
+  gpu('rtx5060','GeForce RTX 5060 8GB','ASUS',11090,1,8,'GDDR7',128,145,240,5,'1× 8-pin',1,[80,310,185]),
+  gpu('rtx5060ti-8','GeForce RTX 5060 Ti 8GB','Gigabyte',12990,0,8,'GDDR7',128,180,260,5,'1× 8-pin',1,[100,370,225]),
+  gpu('rx9060xt-16','Radeon RX 9060 XT 16GB','Sapphire',12490,1,16,'GDDR6',128,160,270,5,'1× 8-pin',1,[90,330,200]),
+  gpu('rtx5060ti-16','GeForce RTX 5060 Ti 16GB','ASUS',17490,0,16,'GDDR7',128,180,304,5,'1× 8-pin',1,[105,380,230]),
+  gpu('rtx5070','GeForce RTX 5070 12GB','MSI',21990,0,12,'GDDR7',192,250,300,5,'1× 12V-2x6',1,[125,430,270]),
+  gpu('rx9070','Radeon RX 9070 16GB','PowerColor',17990,1,16,'GDDR6',256,220,300,5,'2× 8-pin',1,[120,420,260]),
+  gpu('rx9070xt','Radeon RX 9070 XT 16GB','Sapphire',18490,1,16,'GDDR6',256,304,320,5,'3× 8-pin',1,[140,450,290]),
   gpu('rtx5070ti','GeForce RTX 5070 Ti 16GB','Gigabyte',29990,1,16,'GDDR7',256,300,304,5,'1× 12V-2x6',1,[155,480,310]),
-  gpu('rtx5080','GeForce RTX 5080 16GB','MSI',39990,0,16,'GDDR7',256,360,304,5,'1× 12V-2x6',1,[190,560,380]),
-  gpu('rtx5090','GeForce RTX 5090 32GB','ASUS',74990,0,32,'GDDR7',512,575,336,5,'1× 12V-2x6',1,[260,700,480]),
+  gpu('rtx5080','GeForce RTX 5080 16GB','MSI',43990,0,16,'GDDR7',256,360,304,5,'1× 12V-2x6',1,[190,560,380]),
+  gpu('rtx5090','GeForce RTX 5090 32GB','ASUS',125000,1,32,'GDDR7',512,575,336,5,'1× 12V-2x6',1,[260,700,480]),
   ram('d4-16','Kingston Fury Beast 16 GB (2×8) 3200','Kingston',3990,0,'DDR4',16,3200,16,'2×8','XMP',0),
   ram('d4-32','Corsair Vengeance LPX 32 GB (2×16) 3600','Corsair',8490,0,'DDR4',32,3600,18,'2×16','XMP',0),
   ram('d5-16','Kingston Fury Beast 16 GB (2×8) 5600','Kingston',5990,0,'DDR5',16,5600,36,'2×8','XMP / EXPO',0),
@@ -94,12 +94,12 @@ export const PARTS = [
   cpu('r5-7500f','Ryzen 5 7500F','AMD',3990,0,'AM5',6,12,3.7,5.0,32,65,0,5,'DDR5',5,74),
   cpu('r7-5700x','Ryzen 7 5700X','AMD',4990,0,'AM4',8,16,3.4,4.6,32,65,0,4,'DDR4',7,72),
   cpu('i5-12600kf','Core i5-12600KF','Intel',5490,0,'LGA1700',10,16,3.7,4.9,20,125,0,5,'DDR4/DDR5',10,76),
-  cpu('i9-14900k','Core i9-14900K','Intel',14990,0,'LGA1700',24,32,3.2,6.0,36,125,1,5,'DDR4/DDR5',10,112),
-  cpu('u9-285k','Core Ultra 9 285K','Intel',14990,0,'LGA1851',24,24,3.7,5.7,36,125,1,5,'DDR5',3,115),
+  cpu('i9-14900k','Core i9-14900K','Intel',12290,0,'LGA1700',24,32,3.2,6.0,36,125,1,5,'DDR4/DDR5',10,112),
+  cpu('u9-285k','Core Ultra 9 285K','Intel',13490,0,'LGA1851',24,24,3.7,5.7,36,125,1,5,'DDR5',3,115),
   cpu('r9-7950x3d','Ryzen 9 7950X3D','AMD',15990,0,'AM5',16,32,4.2,5.7,128,120,1,5,'DDR5',5,118),
-  gpu('arc-b570','Arc B570 10GB','Intel',5990,0,10,'GDDR6',160,150,245,4,'1× 8-pin',1,[66,235,140]),
-  gpu('rx9060xt-8','Radeon RX 9060 XT 8GB','Gigabyte',8990,0,8,'GDDR6',128,150,250,5,'1× 8-pin',1,[85,320,190]),
-  gpu('rx7800xt','Radeon RX 7800 XT 16GB','Sapphire',14490,0,16,'GDDR6',256,263,300,4,'2× 8-pin',1,[110,400,250]),
+  gpu('arc-b570','Arc B570 10GB','Intel',6490,0,10,'GDDR6',160,150,245,4,'1× 8-pin',1,[66,235,140]),
+  gpu('rx9060xt-8','Radeon RX 9060 XT 8GB','Gigabyte',9390,0,8,'GDDR6',128,150,250,5,'1× 8-pin',1,[85,320,190]),
+  gpu('rx7800xt','Radeon RX 7800 XT 16GB','Sapphire',14990,0,16,'GDDR6',256,263,300,4,'2× 8-pin',1,[110,400,250]),
   ram('d4-32-3200','Kingston Fury Beast 32 GB (2×16) 3200','Kingston',7490,0,'DDR4',32,3200,16,'2×16','XMP',0),
   ram('d5-16-6000','Kingston Fury Beast 16 GB (2×8) 6000','Kingston',6490,0,'DDR5',16,6000,36,'2×8','EXPO',0),
   ram('d5-64-6400','Corsair Dominator Titanium 64 GB (2×32) 6400','Corsair',26990,0,'DDR5',64,6400,32,'2×32','XMP / EXPO',1),
@@ -136,6 +136,16 @@ export const RETAILERS = [
   ['CZC.cz', q => `https://www.czc.cz/${q}/hledat`, 0.01],
 ];
 const hs = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+export const VERIFIED = [
+  { id: 'rx9060xt-16', price: 12490, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/graficke-karty-amd-radeon.html', note: 'Nejlevnější RX 9060 XT 16 GB v katalogu Datartu, další kusy stojí 12 790 až 13 490 Kč.' },
+  { id: 'rx9070xt', price: 18490, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/graficke-karty-amd-radeon.html', note: 'Nejlevnější RX 9070 XT v katalogu Datartu, další kusy stojí 18 690 až 23 990 Kč.' },
+  { id: 'rtx5070ti', price: 29990, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/graficke-karty-nvidia-rtx-5070-ti.html', note: 'Nejlevnější RTX 5070 Ti v Datartu (další kusy 31 490 Kč). Dostupnost této karty se podle zahraničních médií zhoršuje.' },
+  { id: 'd5-32-5600', price: 11390, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/pameti-ram-ddr5-32-gb.html', note: 'Nejlevnější sada 32 GB DDR5 v Datartu. Paměti jsou kvůli nedostatku výrazně dražší než loni.' },
+  { id: 'ssd-1t4', price: 3690, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/ssd-disky-s-kapacitou-1-tb.html', note: 'Nejlevnější 1 TB NVMe PCIe 4.0 SSD v Datartu.' },
+  { id: 'mon-odyssey-g5', price: 3490, shop: 'Alza', date: '24. 9. 2026', src: 'https://mobilizujeme.cz/clanky/lepsi-nabidka-neni-herni-monitor-z-alzy-zlevnil-pod-3-500-kc-ma-27-palcu-a-180-hz', note: 'Akční cena na Alze. QHD při 180 Hz, pro plnou frekvenci je potřeba DisplayPort.' },
+  { id: 'mon-viewsonic-xg275d1', price: 7799, shop: 'Alza', date: 'září 2026', src: 'https://mobilizujeme.cz/clanky/naslapany-herni-monitor-v-alze-zlevnil-o-40-nabizi-4k-rozliseni-a-az-320-hz', note: 'Zlevněno o 40 %. 4K při 160 Hz, v režimu Full HD až 320 Hz.' },
+];
+const VPIN = Object.fromEntries(VERIFIED.map(v => [v.id, v]));
 const OUT = new Set(['rtx5090','i7-14700kf','d5-96','psu1200','ssd-1t5','b550','r9-9950x3d']);
 const cache = new Map();
 export const offers = p => {
@@ -145,7 +155,9 @@ export const offers = p => {
     const r = hs(p.id + n);
     return { n, price: Math.round(p.price * (1 + b + ((r % 40) - 15) / 1000) / 10) * 10, stock: !OUT.has(p.id) && r % 7 !== 0, url: u(encodeURIComponent(dn(p))) };
   }));
-  return cache.get(p.id);
+  const list = cache.get(p.id), vp = VPIN[p.id];
+  if (!vp) return list;
+  return list.map(o => (o.n === vp.shop ? { ...o, price: vp.price, stock: true } : { ...o, price: Math.max(o.price, vp.price) }));
 };
 export const best = p => { const os = offers(p), s = os.filter(o => o.stock); return (s.length ? s : os).reduce((a, b) => (b.price < a.price ? b : a)); };
 export const fmt = n => `${Math.round(n).toLocaleString('cs-CZ')} Kč`;
@@ -177,8 +189,8 @@ export function check(o) {
 export const TIERS = [
   { id: 't25', label: 'do 25 000 Kč', blurb: 'AM4 s DDR4: nejlevnější cesta, dokud je DDR5 tak drahá.', ids: ['r5-5600','rx7600','d4-16','a520','psu550','c-mini','ssd-1t3'] },
   { id: 't35', label: 'do 35 000 Kč', blurb: 'AM5 platforma s 16 GB grafikou pro Full HD na vysoké.', ids: ['r5-7600','rx9060xt-16','d5-16','b650m','psu650','c-mid','ssd-1t4'] },
-  { id: 't45', label: 'do 45 000 Kč', blurb: '32 GB DDR5 a RTX 5060 Ti 16 GB pro 1440p.', ids: ['r5-9600x','rtx5060ti-16','d5-32','b650','psu750','c-air','ssd-1t4'] },
-  { id: 't70', label: 'do 70 000 Kč', blurb: 'Nejlepší herní procesor a RX 9070 XT.', ids: ['r7-9800x3d','rx9070xt','d5-32','b650','psu850','c-air','ssd-2t4'] },
+  { id: 't50', label: 'do 50 000 Kč', blurb: '32 GB DDR5 a Radeon RX 9070 XT pro 1440p.', ids: ['r5-9600x','rx9070xt','d5-32','b650','psu750','c-air','ssd-1t4'] },
+  { id: 't70', label: 'do 70 000 Kč', blurb: 'Nejlepší herní procesor a RTX 5070 Ti.', ids: ['r7-9800x3d','rtx5070ti','d5-32','b650','psu850','c-air','ssd-2t4'] },
 ];
 export const SEEDS = [
   { id: 's1', name: 'Tichá 1440p mašina', by: 'martin_k', likes: 128, ids: ['r5-9600x','rtx5060ti-16','d5-32','b650','psu750','c-bq','ssd-2t4'] },

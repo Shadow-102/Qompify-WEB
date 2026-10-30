@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import BellToggle from './BellToggle.jsx';
-import { CATS, PARTS, BY, LOOK, SPEC, GAMES, MONITORS, RES_K, showVal, perf, dn, offers, best, fmt, spec, check, power, history, deals, optimize, fpsEff } from './data.js';
+import JellyRadio from './JellyRadio.jsx';
+import { downloadBuildPdf } from './pdf.js';
+import { CATS, PARTS, BY, LOOK, SPEC, GAMES, MONITORS, RES_K, showVal, perf, dn, offers, best, fmt, spec, check, power, history, deals, optimize, fpsEff, VERIFIED } from './data.js';
 
 const LBL = Object.fromEntries(CATS);
 const objs = sel => Object.fromEntries(Object.entries(sel).map(([c, id]) => [c, BY[id]]));
@@ -104,29 +106,78 @@ export function ComparePage({ sel, add, say, alerts, setAlert }) {
       <section className="card filters">
         <div className="chips">{CATS.map(([c, l]) => <button key={c} className={cat === c ? 'on' : ''} onClick={() => { setCat(c); setIds([]); }}>{l}</button>)}</div>
         <label className="frow">Hledat<input value={q} onChange={e => setQ(e.target.value)} placeholder="např. Ryzen, RTX, Samsung" /></label>
-        <div className="picklist">{list.map(p => <button key={p.id} className={ids.includes(p.id) ? 'on' : ''} onClick={() => tog(p.id)}><b>{dn(p)}</b><small>{spec(p)}</small><span>{fmt(best(p).price)}</span></button>)}</div>
+        <div className="picklist">{list.map(p => <button key={p.id} data-part={p.id} className={ids.includes(p.id) ? 'on' : ''} onClick={() => tog(p.id)}><b>{dn(p)}</b><small>{spec(p)}</small><span>{fmt(best(p).price)}</span></button>)}</div>
       </section>
       <section className="card cpage">{ids.length ? <CompareTable ids={ids} sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : <p className="muted">Vyber alespoň jeden díl. Pro porovnání zvol dva až čtyři.</p>}</section>
     </>
   );
 }
 
+export function PdfBtn({ title, ids, className = 'ghost' }) {
+  const [busy, setBusy] = useState(false);
+  return <button className={className} disabled={busy} onClick={async () => { setBusy(true); try { await downloadBuildPdf(title, ids); } finally { setBusy(false); } }}>{busy ? 'Připravuji PDF…' : 'Stáhnout PDF'}</button>;
+}
+
+export function Shards() {
+  return (
+    <svg className="shards" viewBox="0 0 420 300" aria-hidden="true">
+      <defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#cdeef5" /><stop offset="1" stopColor="#62b6cb" /></linearGradient></defs>
+      <g fill="none" stroke="url(#gl)" strokeWidth="1.4" strokeLinejoin="round">
+        <path pathLength="1" d="M210 12 L300 120 L250 290 L150 290 L110 130 Z" />
+        <path pathLength="1" d="M210 12 L250 290 M210 12 L150 290 M110 130 L300 120" />
+        <path pathLength="1" d="M300 120 L400 190 L330 260 L250 290" />
+        <path pathLength="1" d="M110 130 L20 200 L80 270 L150 290" />
+      </g>
+    </svg>
+  );
+}
+
 export function DealsBar({ ui }) {
-  const ds = useMemo(deals, []);
+  const items = useMemo(() => {
+    const ver = VERIFIED.map(v => ({ p: LOOK[v.id], pr: v.price, shop: v.shop, v })), seen = new Set(ver.map(x => x.p.id));
+    const drops = deals().filter(d => !seen.has(d.p.id)).slice(0, 7).map(d => ({ p: d.p, pr: d.pr, shop: d.shop, pct: d.pct }));
+    return [...ver, ...drops];
+  }, []);
   return (
     <section className="deals" aria-label="Nejlepší nabídky">
-      <div className="dh"><h2>Nejlepší nabídky právě teď</h2><small>Cena oproti průměru za posledních 30 dní</small></div>
+      <div className="dh"><h2>Nejlepší nabídky právě teď</h2><small>Najeď na kartu pro parametry dílu. Značka „Ověřeno“ znamená cenu ověřenou v e-shopu nebo v článku se zdrojem.</small></div>
       <div className="strip">
-        {ds.map(d => (
-          <article className="deal" key={d.p.id}>
-            <small>{LBL[d.p.cat]}</small><b>{dn(d.p)}</b>
-            <div><span className="pct">−{d.pct} %</span><span className="dp">{fmt(d.pr)}</span></div>
-            <small>{d.shop}</small>
-            <button onClick={() => ui.show([d.p.id])}>Detail a cena</button>
+        {items.map(d => (
+          <article className="deal" key={d.p.id} data-part={d.p.id} data-note={d.v ? d.v.note : `Cena je o ${d.pct} % níž než průměr za posledních 30 dní (model vývoje cen).`} tabIndex={0}>
+            <small>{d.p.cat === 'monitor' ? 'Monitor' : LBL[d.p.cat]}</small><b>{dn(d.p)}</b>
+            <div><span className={d.v ? 'chip ok' : 'pct'}>{d.v ? 'Ověřeno' : `−${d.pct} %`}</span><span className="dp">{fmt(d.pr)}</span></div>
+            <small>{d.shop}{d.v ? ` · ${d.v.date}` : ' · proti 30denní historii'}</small>
+            <div className="dact"><button onClick={() => ui.show([d.p.id])}>Detail a cena</button>{d.v && <a href={d.v.src} target="_blank" rel="noopener noreferrer">Zdroj</a>}</div>
           </article>
         ))}
       </div>
     </section>
+  );
+}
+
+export function HoverLayer() {
+  const [h, setH] = useState(null);
+  useEffect(() => {
+    let t;
+    const over = e => { const el = e.target.closest?.('[data-part]'); if (!el) return; clearTimeout(t); const r = el.getBoundingClientRect(); setH(s => (s && s.id === el.dataset.part && s.t === r.top && s.l === r.left ? s : { id: el.dataset.part, l: r.left, t: r.top, b: r.bottom, note: el.dataset.note || '' })); };
+    const out = e => { if (e.target.closest?.('[data-part]')) { clearTimeout(t); t = setTimeout(() => setH(null), 90); } };
+    const hide = () => setH(null);
+    document.addEventListener('mouseover', over); document.addEventListener('mouseout', out); document.addEventListener('focusin', over); document.addEventListener('focusout', out);
+    addEventListener('scroll', hide, true); addEventListener('keydown', hide);
+    return () => { clearTimeout(t); document.removeEventListener('mouseover', over); document.removeEventListener('mouseout', out); document.removeEventListener('focusin', over); document.removeEventListener('focusout', out); removeEventListener('scroll', hide, true); removeEventListener('keydown', hide); };
+  }, []);
+  const p = h && LOOK[h.id]; if (!p) return null;
+  const rows = (SPEC[p.cat] || MON_ROWS).filter(r => r[0] !== 'sc').slice(0, 9), W = 340, left = Math.max(8, Math.min(h.l, innerWidth - W - 8)), below = h.b + 400 < innerHeight || h.t < 420;
+  const b = best(p);
+  return (
+    <div className="hcard" role="tooltip" style={{ left, top: below ? h.b + 8 : h.t - 8, width: W, transform: below ? 'none' : 'translateY(-100%)' }}>
+      <b>{dn(p)}</b><small>{p.cat === 'monitor' ? 'Monitor' : LBL[p.cat]} · {p.v ? 'ověřená cena' : 'orientační cena'}</small>
+      <dl>{rows.map(([k, l, u]) => <div key={k}><dt>{l}</dt><dd>{showVal(p[k], u)}</dd></div>)}</dl>
+      <div className="hp"><b>{fmt(b.price)}</b><span>{b.n}</span></div>
+      <PriceChart p={p} w={300} h={52} />
+      {h.note && <p className="hn">{h.note}</p>}
+      <small>Klikni pro detail a porovnání cen.</small>
+    </div>
   );
 }
 
@@ -158,10 +209,10 @@ export function Optimizer({ go, save }) {
             <article className="card tier" key={i}>
               <header><h2>{i ? `Alternativa ${i}` : 'Nejlepší volba'}</h2><b>{fmt(x.tot)}</b></header>
               <p className="muted">Zbývá {fmt(r.a.n - x.tot)} z rozpočtu</p>
-              <ul className="parts">{CATS.filter(([c]) => x.o[c]).map(([c, l]) => <li key={c}><span>{l}</span><span>{dn(x.o[c])}</span><b>{fmt(best(x.o[c]).price)}</b></li>)}</ul>
+              <ul className="parts">{CATS.filter(([c]) => x.o[c]).map(([c, l]) => <li key={c}><span>{l}</span><span data-part={x.o[c].id}>{dn(x.o[c])}</span><b>{fmt(best(x.o[c]).price)}</b></li>)}</ul>
               {g && <p className="muted">{[0, 7, 8].map(k => `${GAMES[k][0]} ${fpsEff(g, x.o.cpu, GAMES[k][2])} FPS`).join(' · ')}</p>}
               <ul className="badges inline">{res.filter(b => b.l !== 'ok').slice(0, 2).map((b, j) => <Badge key={j} {...b} />)}{res.every(b => b.l === 'ok') && <Badge l="ok" t="Vše kompatibilní a vyvážené" />}</ul>
-              <div className="actions"><button className="btn" onClick={() => go('builder', Object.values(sel).join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(`Na míru ${fmt(r.a.n)}`, sel)}>Uložit</button></div>
+              <div className="actions"><button className="btn" onClick={() => go('builder', Object.values(sel).join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(`Na míru ${fmt(r.a.n)}`, sel)}>Uložit</button><PdfBtn title={`Na míru ${fmt(r.a.n)}`} ids={Object.values(sel)} /></div>
             </article>
           );
         })}
@@ -172,12 +223,53 @@ export function Optimizer({ go, save }) {
 
 const PAN = { 'QD-OLED': 'oled', 'QD-OLED zakřivený': 'oled', 'IPS Black': 'ips', 'Fast IPS': 'ips', IPS: 'ips', VA: 'va' };
 const RESPTS = { FHD: 1, QHD: 1.8, UWQHD: 2.2, '4K': 3.2 };
+const Prose = ({ children }) => <div className="prose">{children}</div>;
+const PANELS = {
+  IPS: { txt: 'IPS je univerzální volba: věrné barvy, široké úhly a rozumná cena. Černá je spíš šedá a kontrast průměrný, rychlé varianty (Fast IPS) ale zvládají i esport.', v: [['Barvy', 8], ['Kontrast', 4], ['Odezva', 7], ['Pozorovací úhly', 9], ['Jas', 7], ['Odolnost proti vypálení', 10], ['Cena (vyšší = dražší)', 5]] },
+  VA: { txt: 'VA nabídne hlubokou černou a vysoký kontrast za nízkou cenu, ideální na tmavé hry a filmy. Slabinou jsou pomalejší přechody tmavých odstínů a užší úhly.', v: [['Barvy', 6], ['Kontrast', 8], ['Odezva', 5], ['Pozorovací úhly', 5], ['Jas', 6], ['Odolnost proti vypálení', 10], ['Cena (vyšší = dražší)', 3]] },
+  OLED: { txt: 'OLED má dokonalou černou, téměř nulovou odezvu a výborné barvy. Počítej s dražší cenou, nižším jasem na celé ploše a rizikem vypálení při dlouho statickém obrazu.', v: [['Barvy', 10], ['Kontrast', 10], ['Odezva', 10], ['Pozorovací úhly', 9], ['Jas', 6], ['Odolnost proti vypálení', 5], ['Cena (vyšší = dražší)', 8]] },
+};
+function PanelPicker() {
+  const [k, setK] = useState('IPS'), P = PANELS[k];
+  return (
+    <section className="card art">
+      <h2>Panely v praxi</h2>
+      <JellyRadio items={Object.keys(PANELS).map(x => ({ value: x, label: x }))} value={k} onChange={setK} ariaLabel="Typ panelu" chipColor="#E5D9C5" activeColor="#3B66F5" textColor="#0b0f19" activeTextColor="#ffffff" />
+      <ul className="pbars">{P.v.map(([l, v]) => <li key={l}><span>{l}</span><i><b style={{ '--w': `${v * 10}%` }} /></i><em>{v}/10</em></li>)}</ul>
+      <p className="muted">{P.txt} Hodnoty jsou naše zjednodušené hodnocení typického panelu, ne měření konkrétního modelu.</p>
+    </section>
+  );
+}
+const RESPX = { FHD: [1920, 1080], QHD: [2560, 1440], UWQHD: [3440, 1440], '4K': [3840, 2160] };
+function PpiCalc() {
+  const [sz, setSz] = useState(27), [r, setR] = useState('QHD'), ppi = Math.round(Math.hypot(...RESPX[r]) / sz), cm = Math.round((3438 / ppi) * 2.54);
+  const lab = ppi < 90 ? 'hrubší obraz' : ppi < 120 ? 'dobrá ostrost' : ppi < 160 ? 'velmi jemný obraz' : 'téměř tiskově ostrý';
+  return (
+    <section className="card art">
+      <h2>Spočítej si ostrost obrazu</h2>
+      <div className="frow"><label>Úhlopříčka: {sz}"<input type="range" min="21" max="49" value={sz} onChange={e => setSz(+e.target.value)} /></label>
+        <label>Rozlišení<select value={r} onChange={e => setR(e.target.value)}><option value="FHD">1920×1080 (FHD)</option><option value="QHD">2560×1440 (QHD)</option><option value="UWQHD">3440×1440 (ultrawide)</option><option value="4K">3840×2160 (4K)</option></select></label></div>
+      <div className="ppi"><div><b>{ppi}</b><small>pixelů na palec (PPI)</small></div><div><b>{cm} cm</b><small>odtud už pixely nerozeznáš</small></div><div><b>{lab}</b><small>hodnocení</small></div></div>
+      <i className="gauge"><b style={{ '--w': `${Math.min(100, Math.max(5, ((ppi - 60) / 140) * 100))}%` }} /></i>
+    </section>
+  );
+}
+function MotionDemo() {
+  const rows = [[60, '60 Hz', '16,7 ms'], [144, '144 Hz', '6,9 ms'], [240, '240 Hz', '4,2 ms']];
+  return (
+    <section className="card art">
+      <h2>Jak se liší plynulost při 60, 144 a 240 Hz</h2>
+      <div className="mrows">{rows.map(([hz, l, ms]) => <div key={hz} className="mrow"><span>{l}<small>{ms} na snímek</small></span><i className="mtrack"><b className="ball" style={{ '--steps': Math.round(hz / 6) }} /></i></div>)}</div>
+      <p className="muted">Kulička urazí stejnou dráhu za stejný čas, ale počet zobrazených pozic odpovídá frekvenci. Je to zvýrazněná ilustrace: tvůj monitor ukazuje pořád jen svých vlastních Hz.</p>
+    </section>
+  );
+}
 function MonitorArticle() {
   const gpus = PARTS.filter(p => p.cat === 'gpu'), [gid, setGid] = useState('rtx5060ti-16'), [gi, setGi] = useState(0), [rf, setRf] = useState('all'), [use, setUse] = useState('gaming');
   const [pick, setPick] = useState(null), [open, setOpen] = useState(null), gpu = BY[gid];
   const fps = res => Math.round(gpu.sc * GAMES[gi][2] * RES_K[res]);
   const bars = ['FHD', 'QHD', 'UWQHD', '4K'].map(r => ({ r, v: fps(r) })), maxF = Math.max(...bars.map(b => b.v), 150);
-  const okRes = [...bars].reverse().find(b => b.v >= 90) || bars.find(b => b.v >= 60) || bars[0];
+  const okRes = [...bars].reverse().find(b => b.v >= 90) || bars.find(b => b.v >= 60) || bars[0], rn = r => (r === 'UWQHD' ? '3440×1440' : r);
   const pts = MONITORS.filter(m => rf === 'all' || m.res === rf);
   const val = m => (RESPTS[m.res] * m.hz * (PAN[m.panel] === 'oled' ? 1.4 : 1)) / best(m).price * 1000;
   const list = MONITORS.filter(m => m.tags.includes(use)).sort((a, b) => val(b) - val(a));
@@ -187,47 +279,60 @@ function MonitorArticle() {
   const sm = MONITORS.find(m => m.id === pick);
   return (
     <>
-      <Head title="Jaký monitor koupit v roce 2026" sub="Rozlišení, frekvence a panel rozhodují o tom, jestli tvoje grafika vydělá. Interaktivní průvodce s grafy a výběrem monitorů za aktuální české ceny." />
+      <header className="ahead"><small>Průvodce · aktualizováno 30. 10. 2026</small><h1>Jaký monitor koupit v roce 2026</h1>
+        <p className="lede">Monitor držíš před očima několik hodin denně, přesto se často vybírá podle jednoho čísla na krabici. Projdeme krok za krokem, co které číslo znamená, a ukážeme to na grafech, které si můžeš sám přepínat.</p></header>
+      <Prose><h2>Nejdřív grafika, potom monitor</h2>
+        <p>Monitor má smysl jen tak dobrý, jak ho dokáže nakrmit grafická karta. 4K monitor s 240 Hz je zbytečný, když karta dává v tvých hrách 70 FPS. Proto začni výběrem karty a hry, ty tvoje.</p></Prose>
       <section className="card art">
-        <h2>1. Co utáhne tvoje grafika</h2>
+        <h2>Co utáhne tvoje grafika</h2>
         <div className="frow"><label>Grafická karta<select value={gid} onChange={e => setGid(e.target.value)}>{gpus.map(g => <option key={g.id} value={g.id}>{dn(g)}</option>)}</select></label>
           <label>Hra<select value={gi} onChange={e => setGi(+e.target.value)}>{GAMES.map((g, i) => <option key={g[0]} value={i}>{g[0]}</option>)}</select></label></div>
         <svg className="bars" viewBox="0 0 640 210" role="img" aria-label="Odhad FPS podle rozlišení">
           {[60, 144, 240].filter(v => v < maxF * 1.1).map(v => <g key={v}><line x1="90" x2="630" y1={190 - (v / maxF) * 170} y2={190 - (v / maxF) * 170} className="grid" /><text x="84" y={194 - (v / maxF) * 170} textAnchor="end">{v}</text></g>)}
-          {bars.map((b, i) => <g key={b.r}><rect x={110 + i * 130} y={190 - (b.v / maxF) * 170} width="80" height={(b.v / maxF) * 170} rx="8" className={b === okRes ? 'sbar on' : 'sbar'} /><text x={150 + i * 130} y={184 - (b.v / maxF) * 170} textAnchor="middle" className="val">{b.v}</text><text x={150 + i * 130} y="206" textAnchor="middle">{b.r === 'UWQHD' ? '3440×1440' : b.r}</text></g>)}
+          {bars.map((b, i) => <g key={b.r}><rect x={110 + i * 130} y={190 - (b.v / maxF) * 170} width="80" height={(b.v / maxF) * 170} rx="8" className={b === okRes ? 'sbar on' : 'sbar'} /><text x={150 + i * 130} y={184 - (b.v / maxF) * 170} textAnchor="middle" className="val">{b.v}</text><text x={150 + i * 130} y="206" textAnchor="middle">{rn(b.r)}</text></g>)}
         </svg>
-        <p className="muted">Odhad pro {dn(gpu)} v {GAMES[gi][0]}. Doporučujeme <b>{okRes.r === 'UWQHD' ? '3440×1440' : okRes.r}</b> ({okRes.v} FPS), takže hledej monitor kolem {Math.min(360, Math.round(okRes.v / 20) * 20)} Hz.</p>
+        <p className="muted">{dn(gpu)} v {GAMES[gi][0]}: nejvyšší rozlišení, které drží aspoň 90 FPS, je <b>{rn(okRes.r)}</b> ({okRes.v} FPS). Hledej monitor kolem {Math.min(360, Math.round(okRes.v / 20) * 20)} Hz.</p>
       </section>
+      <Prose><h2>Rozlišení a ostrost</h2>
+        <p>Rozlišení samo o sobě neříká, jak ostrý obraz uvidíš. Rozhoduje poměr počtu pixelů a velikosti panelu, tedy hustota pixelů (PPI). Na 27" je QHD zlatý střed, FHD už je vidět jako zrnitý a 4K se vyplatí od 32" nebo pro tvorbu.</p></Prose>
+      <PpiCalc />
+      <Prose><h2>Obnovovací frekvence a plynulost</h2>
+        <p>Každý další skok frekvence přináší menší zlepšení: z 60 na 144 Hz je rozdíl velký, ze 144 na 240 Hz už jemnější. Smysl mají jen tolik hertzů, kolik FPS ti grafika skutečně dá.</p></Prose>
+      <MotionDemo />
+      <Prose><h2>Panel mění všechno ostatní</h2>
+        <p>Typ panelu určuje kontrast, odezvu i barvy. Vyber si typ a podívej se, v čem je silný a co obětuje.</p></Prose>
+      <PanelPicker />
+      <Prose><h2>Kolik za to zaplatit</h2>
+        <p>Nejlevnější monitory s vysokou frekvencí stojí dnes pár tisíc, OLED začíná kolem 12 tisíc. Graf ukazuje každý monitor jako bod: čím výš a víc vlevo, tím výhodnější. Klikni na bod pro parametry.</p></Prose>
       <section className="card art">
-        <h2>2. Cena a frekvence</h2>
+        <h2>Cena a frekvence</h2>
         <div className="chips">{['all', 'FHD', 'QHD', '4K'].map(r => <button key={r} className={rf === r ? 'on' : ''} onClick={() => setRf(r)}>{r === 'all' ? 'Všechna rozlišení' : r}</button>)}</div>
         <svg className="scatter" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cena a frekvence monitorů">
           {[60, 120, 180, 240, 300].map(v => <g key={v}><line x1="50" x2={W - 20} y1={py(v)} y2={py(v)} className="grid" /><text x="44" y={py(v) + 4} textAnchor="end">{v} Hz</text></g>)}
           {[0, 5000, 10000, 15000, 20000].map(v => <text key={v} x={px(v)} y={H - 12} textAnchor="middle">{v / 1000} tis.</text>)}
           {pts.map(m => <circle key={m.id} cx={px(best(m).price)} cy={py(m.hz)} r={m.size > 27 ? 11 : 8} className={`pt ${PAN[m.panel]}${pick === m.id ? ' sel' : ''}`} onClick={() => setPick(m.id)} tabIndex={0} onKeyDown={e => e.key === 'Enter' && setPick(m.id)}><title>{dn(m)}</title></circle>)}
         </svg>
-        <p className="legend"><i className="ips" /> IPS <i className="va" /> VA <i className="oled" /> OLED · větší kruh = 32"</p>
+        <p className="legend"><i className="ips" /> IPS <i className="va" /> VA <i className="oled" /> OLED. Větší kruh je 32".</p>
         <p className="muted">{sm ? <><b>{dn(sm)}</b>: {sm.size}" {sm.res} {sm.panel}, {sm.hz} Hz, {sm.ms} ms, {fmt(best(sm).price)}</> : 'Klikni na bod pro detail monitoru.'}</p>
       </section>
+      <Prose><h2>Naše doporučení</h2>
+        <p>Vyber účel a seznam se seřadí podle poměru cena a výkon. Pod každým monitorem uvidíš, jestli ho tvoje vybraná grafika utáhne naplno. Najetím myši zobrazíš parametry, kliknutím na „Ceny a vývoj“ porovnáš obchody.</p></Prose>
       <section className="card art">
-        <h2>3. Doporučené monitory</h2>
         <div className="chips">{[['gaming', 'Hraní'], ['esport', 'Esport'], ['work', 'Tvorba a práce'], ['office', 'Kancelář']].map(([k, l]) => <button key={k} className={use === k ? 'on' : ''} onClick={() => setUse(k)}>{l}</button>)}</div>
         <ul className="mons">
           {list.map((m, i) => { const f = Math.round(gpu.sc * GAMES[gi][2] * RES_K[m.res]); return (
             <li key={m.id}>
-              <div className="mh"><span className="rank">{i + 1}</span><div><b>{dn(m)}</b><small>{m.size}" · {m.res} · {m.panel} · {m.hz} Hz · {m.ms} ms{m.hdr ? ' · HDR' : ''}</small></div><div className="mp"><b>{fmt(best(m).price)}</b><small>{m.v ? 'ověřená akční cena' : 'odhad ceny'}</small></div></div>
+              <div className="mh"><span className="rank">{i + 1}</span><div data-part={m.id}><b>{dn(m)}</b><small>{m.size}" · {m.res} · {m.panel} · {m.hz} Hz · {m.ms} ms{m.hdr ? ' · HDR' : ''}</small></div><div className="mp"><b>{fmt(best(m).price)}</b><small>{m.v ? 'ověřená akční cena' : 'odhad ceny'}</small></div></div>
               <p className="muted">{use === 'office' || use === 'work' ? 'Dobrý obraz pro dlouhou práci.' : f >= m.hz * 0.8 ? `Tvoje ${dn(gpu)} utáhne přibližně plných ${m.hz} Hz.` : f >= 60 ? `Tvoje grafika dá asi ${f} FPS z ${m.hz} Hz, frekvenci nevyužiješ celou.` : 'Pro tvou grafiku je to příliš náročné rozlišení.'}</p>
               <div className="actions"><button className="ghost" onClick={() => setOpen(open === m.id ? null : m.id)}>{open === m.id ? 'Skrýt ceny' : 'Ceny a vývoj'}</button></div>
               {open === m.id && <div className="mx"><Offers p={m} /><PriceChart p={m} w={420} h={96} /></div>}
             </li>); })}
         </ul>
-      </section>
-      <section className="card art">
-        <h2>Naše tipy</h2>
         <ul className="verdict"><li>Nejlepší poměr cena/výkon: <b>{dn(m0)}</b> ({fmt(best(m0).price)})</li><li>Levný start do 144+ Hz QHD: <b>{dn(budget)}</b> ({fmt(best(budget).price)})</li><li>Nejlevnější OLED: <b>{dn(cheapOled)}</b> ({fmt(best(cheapOled).price)})</li></ul>
-        <p className="muted">Pozor: akční ceny jsou často vázané na slevové kódy obchodů a po čase se vrací výš. Před koupí je ověř. Pro 4K při 240 Hz potřebuješ grafiku třídy RTX 5080 a výš.</p>
+        <p className="muted">Akční ceny jsou často vázané na slevové kódy a po čase se vrací výš. Před koupí je ověř. Pro 4K při 240 Hz potřebuješ grafiku třídy RTX 5080 a výš.</p>
       </section>
-      <section className="card art"><h2>4. Co znamenají parametry monitoru</h2><Glossary items={MON_GLOSS} /></section>
+      <Prose><h2>Slovníček parametrů</h2><p>Co přesně znamenají čísla v tabulkách a na krabicích:</p></Prose>
+      <section className="card art"><Glossary items={MON_GLOSS} /></section>
     </>
   );
 }
@@ -269,8 +374,41 @@ const ARTICLES = [
   { id: 'monitory', t: 'Jaký monitor koupit v roce 2026', d: 'Interaktivní průvodce: co utáhne tvoje grafika, jak souvisí cena s frekvencí a které monitory za aktuální ceny stojí za to. Obsahuje vysvětlení všech parametrů.', tag: 'Monitory · interaktivní grafy' },
   { id: 'parametry', t: 'Co znamenají parametry PC dílů', d: 'Jádra, VRAM, MT/s, TBW, ATX 3.x. Srozumitelné vysvětlení specifikací procesorů, grafik, pamětí, disků, zdrojů a skříní.', tag: 'Průvodce · slovníček' },
 ];
+function LatencyCalc() {
+  const [mt, setMt] = useState(6000), [cl, setCl] = useState(30), ns = ((cl * 2000) / mt), ref = [[3200, 16], [5600, 36], [6000, 36], [6000, 30], [6400, 32]];
+  return (
+    <section className="card art">
+      <h2>Skutečná latence paměti</h2>
+      <div className="frow"><label>Frekvence (MT/s)<select value={mt} onChange={e => setMt(+e.target.value)}>{[3200, 3600, 5600, 6000, 6400, 7200, 8000].map(v => <option key={v}>{v}</option>)}</select></label><label>Latence CL: {cl}<input type="range" min="14" max="46" value={cl} onChange={e => setCl(+e.target.value)} /></label></div>
+      <div className="ppi"><div><b>{ns.toFixed(1)} ns</b><small>skutečná latence</small></div></div>
+      <ul className="pbars">{ref.map(([m, c]) => { const n = (c * 2000) / m; return <li key={m + '-' + c}><span>{m} CL{c}</span><i><b style={{ '--w': `${Math.max(8, 100 - (n - 8) * 8)}%` }} /></i><em>{n.toFixed(1)} ns</em></li>; })}</ul>
+      <p className="muted">Čím kratší pruh, tím pomalejší paměť. Vzorec: CL ÷ MT/s × 2000.</p>
+    </section>
+  );
+}
+function PsuCalc() {
+  const cpus = PARTS.filter(p => p.cat === 'cpu'), gpus = PARTS.filter(p => p.cat === 'gpu'), [c, setC] = useState('r7-9800x3d'), [g, setG] = useState('rtx5070ti');
+  const o = { cpu: BY[c], gpu: BY[g] }, d = power(o), need = Math.ceil((d * 1.3) / 50) * 50, ok = PARTS.filter(p => p.cat === 'psu' && p.w >= need).sort((a, b) => best(a).price - best(b).price).slice(0, 3);
+  return (
+    <section className="card art">
+      <h2>Jaký zdroj potřebuješ</h2>
+      <div className="frow"><label>Procesor<select value={c} onChange={e => setC(e.target.value)}>{cpus.map(p => <option key={p.id} value={p.id}>{dn(p)}</option>)}</select></label><label>Grafická karta<select value={g} onChange={e => setG(e.target.value)}>{gpus.map(p => <option key={p.id} value={p.id}>{dn(p)}</option>)}</select></label></div>
+      <div className="ppi"><div><b>{d} W</b><small>odhad příkonu</small></div><div><b>{need} W</b><small>doporučený zdroj</small></div></div>
+      <p className="muted">Zdroje, které stačí, od nejlevnějšího: {ok.length ? ok.map(p => `${dn(p)} (${fmt(best(p).price)})`).join(', ') : 'žádný z katalogu, zvol slabší komponenty.'}</p>
+    </section>
+  );
+}
 function PartsArticle() {
-  return (<><Head title="Co znamenají parametry PC dílů" sub="Slovníček specifikací, které najdeš v katalogu a v porovnání. Vždy říká, co číslo znamená a kdy na něm záleží." /><section className="card art"><Glossary items={PART_GLOSS} /></section></>);
+  return (
+    <>
+      <header className="ahead"><small>Průvodce · slovníček</small><h1>Co znamenají parametry PC dílů</h1>
+        <p className="lede">Specifikace na e-shopech vypadají jako šifra. Tady je překlad: co číslo říká, kdy na něm záleží a kdy se ho nemusíš bát.</p></header>
+      <Prose><h2>Dvě čísla, která si spočítáš sám</h2><p>Dvě věci se dají snadno spočítat a ušetří peníze: skutečná latence paměti a potřebný výkon zdroje. Vyzkoušej si je s vlastními díly.</p></Prose>
+      <LatencyCalc /><PsuCalc />
+      <Prose><h2>Slovníček</h2><p>Všechny parametry z katalogu a z porovnání dílů:</p></Prose>
+      <section className="card art"><Glossary items={PART_GLOSS} /></section>
+    </>
+  );
 }
 export function Articles({ a }) {
   const art = ARTICLES.find(x => x.id === a);

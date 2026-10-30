@@ -24,3 +24,10 @@ Skript zapisuje `src/prices.json` včetně historie cen; graf cen ji použije, j
 3. Automaticky: workflow `.github/workflows/prices.yml` běží denně v 5:00 UTC, aktualizuje `src/prices.json`, přebuilduje `docs/` a commitne.
 4. Díly se párují podle názvu; pro problémové kusy přidej klíčová slova do `scripts/overrides.json` (`{"id-dilu": ["ryzen","9800x3d"]}`).
 Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf používá simulovaná data.
+
+## Novinky ve verzi 1.3
+- Ceny přepsané podle českých e-shopů (10/2026). Díly s `v=1` v `src/data.js` mají cenu ověřenou, ostatní jsou odhad.
+  Ověřené nabídky (`VERIFIED` v `src/data.js`) se přibijí k danému obchodu a ukazují se v pruhu „Nejlepší nabídky“ se zdrojem.
+- Karta s parametry při najetí myší na díl (atribut `data-part="id-dílu"` na libovolném prvku).
+- Export PDF každé sestavy (`src/pdf.js`, bez knihoven): tlačítko „Stáhnout PDF“ u každé sestavy.
+- Články: text a interaktivní komponenty se střídají; slovníčky parametrů.

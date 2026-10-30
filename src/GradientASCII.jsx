@@ -24,9 +24,9 @@ void main(){
   if(h(cell+7.)<near)idx=floor(h(cell+floor(uT*10.))*uN);
   float a=texture2D(uA,vec2((idx+f.x)/uN,f.y)).a;
   float y=uv.y;
-  vec3 dk=mix(vec3(.059,.071,.110),vec3(.086,.086,.118),smoothstep(1.,.5,y));
-  dk=mix(dk,vec3(.067,.157,.235),smoothstep(.5,.14,y));
-  dk=mix(dk,vec3(.165,.373,.502),smoothstep(.14,0.,y));
+  vec3 dk=mix(vec3(.024,.071,.114),vec3(.043,.165,.239),smoothstep(1.,.5,y));
+  dk=mix(dk,vec3(.106,.286,.396),smoothstep(.5,.2,y));
+  dk=mix(dk,vec3(.38,.71,.80),smoothstep(.2,0.,y));
   vec3 bg=uL>.5?vec3(.95,.92,.87):dk;
   vec3 ink=uL>.5?c*.75:c;
   vec3 col=bg+c*v*.07*(uL>.5?-1.:1.);

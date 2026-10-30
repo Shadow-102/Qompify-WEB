@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import GradientASCII from './GradientASCII.jsx';
 import { CATS, PARTS, BY, LOOK, dn, TIERS, SEEDS, GAMES, fpsEff, offers, best, fmt, spec, check, power, rec } from './data.js';
 import logo from './assets/logo.png';
-import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles } from './extra.jsx';
+import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles, HoverLayer, Shards, PdfBtn } from './extra.jsx';
 import { Benchmarks } from './bench.jsx';
 
 const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita']];
@@ -36,7 +36,7 @@ function useTween(v) {
 function Share({ ids, title, copy }) {
   if (!ids.length) return null;
   const url = linkOf(ids);
-  return <div className="share"><button onClick={() => copy(url, 'Odkaz zkopírován')}>Kopírovat odkaz</button></div>;
+  return <div className="share"><button onClick={() => copy(url, 'Odkaz zkopírován')}>Kopírovat odkaz</button><PdfBtn title={title} ids={ids} className="" /></div>;
 }
 
 function Sheet({ cat, sel, onClose, onPick, ui }) {
@@ -68,7 +68,7 @@ function Sheet({ cat, sel, onClose, onPick, ui }) {
           {list.map(({ p, bad, rec: isRec, pr }) => (
             <li key={p.id}>
               <button className={`pick${bad ? ' dim' : ''}${sel[cat] === p.id ? ' cur' : ''}`} onClick={() => onPick(p.id)}>
-                <span><b>{dn(p)}</b><small>{spec(p)}</small>{bad && <small className="why">Nekompatibilní: {bad.t}</small>}</span>
+                <span data-part={p.id}><b>{dn(p)}</b><small>{spec(p)}</small>{bad && <small className="why">Nekompatibilní: {bad.t}</small>}</span>
                 <span className="pp">{isRec && <em className="tag">Doporučujeme</em>}<b>{fmt(pr)}</b></span>
               </button>
               <div className="tools"><button onClick={() => ui.show([p.id])}>Detail</button><button className={ui.cmp.includes(p.id) ? 'on' : ''} onClick={() => ui.toggle(p.id)}>Porovnat</button></div>
@@ -89,6 +89,7 @@ function Builder({ sel, setSel, add, save, copy, ui }) {
   return (
     <>
       <section className="hero">
+        <Shards />
         <h1>Poskládej PC, které nastartuje na první pokus.</h1>
         <p>Vyber díly. Qompify hlídá socket, zdroj i délku grafiky a hledá nejnižší cenu v pěti českých e-shopech.</p>
       </section>
@@ -103,7 +104,7 @@ function Builder({ sel, setSel, add, save, copy, ui }) {
                 <li key={c} className={p ? 'filled' : ''}>
                   <button className="slot" onClick={() => setPick(c)}>
                     <span className="slot-l">{label}</span>
-                    <span className="slot-n">{p ? <><b>{dn(p)}</b><small>{spec(p)}</small></> : <small>Vybrat z {PARTS.filter(x => x.cat === c).length} dílů</small>}</span>
+                    <span className="slot-n" data-part={p?.id}>{p ? <><b>{dn(p)}</b><small>{spec(p)}</small></> : <small>Vybrat z {PARTS.filter(x => x.cat === c).length} dílů</small>}</span>
                     <span className="slot-p">{p ? fmt(best(p).price) : 'Vybrat'}</span>
                   </button>
                   {p && <button className="mini" onClick={() => setFocus(p.id)}>Ceny</button>}
@@ -154,7 +155,7 @@ function Tiers({ go, save }) {
           <article className="card tier" key={r.id}>
             <header><h2>{r.label}</h2><b>{fmt(r.tot)}</b></header>
             <p className="muted">{r.blurb}</p>
-            <ul className="parts">{CATS.map(([c, l]) => <li key={c}><span>{l}</span><span>{dn(r.o[c])}</span><b>{fmt(best(r.o[c]).price)}</b></li>)}</ul>
+            <ul className="parts">{CATS.map(([c, l]) => <li key={c}><span>{l}</span><span data-part={r.o[c].id}>{dn(r.o[c])}</span><b>{fmt(best(r.o[c]).price)}</b></li>)}</ul>
             <div className="fps">
               {GAMES.map(([g, q], i) => (
                 <div key={g}>
@@ -164,7 +165,7 @@ function Tiers({ go, save }) {
               ))}
             </div>
             <ul className="badges inline">{[r.res.every(x => x.l === 'ok') ? { l: 'ok', t: 'Vše kompatibilní' } : { l: 'warn', t: 'Zkontroluj kompatibilitu' }].map((b, i) => <Badge key={i} {...b} />)}</ul>
-            <div className="actions"><button className="btn" onClick={() => go('builder', r.ids.join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(r.label, r.sel)}>Uložit</button></div>
+            <div className="actions"><button className="btn" onClick={() => go('builder', r.ids.join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(r.label, r.sel)}>Uložit</button><PdfBtn title={r.label} ids={r.ids} /></div>
           </article>
         ))}
       </div>
@@ -173,7 +174,7 @@ function Tiers({ go, save }) {
 }
 
 function Catalog({ add, say, ui }) {
-  const [cat, setCat] = useState('all'), [q, setQ] = useState(''), [max, setMax] = useState(80000), [stock, setStock] = useState(false);
+  const [cat, setCat] = useState('all'), [q, setQ] = useState(''), [max, setMax] = useState(140000), [stock, setStock] = useState(false);
   const [vram, setVram] = useState(0), [tdp, setTdp] = useState(0), [pc, setPc] = useState(0), [open, setOpen] = useState(null);
   const list = useMemo(() => PARTS.filter(p => {
     const pr = best(p).price, g = p.pcie ?? p.pc;
@@ -188,7 +189,7 @@ function Catalog({ add, say, ui }) {
         <div className="chips">{[['all', 'Vše'], ...CATS].map(([c, l]) => <button key={c} className={cat === c ? 'on' : ''} onClick={() => setCat(c)}>{l}</button>)}</div>
         <div className="frow">
           <label>Hledat<input value={q} onChange={e => setQ(e.target.value)} placeholder="např. RTX, Ryzen, 1 TB" /></label>
-          <label>Cena do {fmt(max)}<input type="range" min={1000} max={80000} step={500} value={max} onChange={e => setMax(+e.target.value)} /></label>
+          <label>Cena do {fmt(max)}<input type="range" min={1000} max={140000} step={500} value={max} onChange={e => setMax(+e.target.value)} /></label>
           {sel(vram, setVram, 'VRAM od', [[8, '8 GB'], [12, '12 GB'], [16, '16 GB'], [32, '32 GB']])}
           {sel(tdp, setTdp, 'TDP do', [[65, '65 W'], [125, '125 W'], [200, '200 W'], [320, '320 W']])}
           {sel(pc, setPc, 'PCIe od', [[3, '3.0'], [4, '4.0'], [5, '5.0']])}
@@ -199,7 +200,7 @@ function Catalog({ add, say, ui }) {
       <ul className="catalog">
         {list.map(p => (
           <li key={p.id} className="card part">
-            <div className="ph"><span className="muted">{LBL[p.cat]} · {p.v ? 'ověřená cena' : 'odhad ceny'}</span><b>{dn(p)}</b><small>{spec(p)}</small></div>
+            <div className="ph" data-part={p.id}><span className="muted">{LBL[p.cat]} · {p.v ? 'ověřená cena' : 'odhad ceny'}</span><b>{dn(p)}</b><small>{spec(p)}</small></div>
             <div className="pr"><b>{fmt(best(p).price)}</b><span className="muted">nejnižší cena</span></div>
             <div className="actions"><button className="btn" onClick={() => { add(p.id); say(`${p.name} přidán do stavitele`); }}>Do sestavy</button><button className="ghost" onClick={() => setOpen(open === p.id ? null : p.id)}>{open === p.id ? 'Skrýt ceny' : 'Ceny'}</button><button className="ghost" onClick={() => ui.show([p.id])}>Detail</button><button className={`ghost${ui.cmp.includes(p.id) ? ' on' : ''}`} onClick={() => ui.toggle(p.id)}>Porovnat</button></div>
             {open === p.id && <Offers p={p} />}
@@ -292,6 +293,12 @@ export default function App() {
     };
     addEventListener('keydown', f); return () => removeEventListener('keydown', f);
   }, [page]);
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -6% 0px' });
+    const t = setTimeout(() => document.querySelectorAll('.tier,.art,.build,.prose,.benchc,.cpage').forEach(el => { if (!el.classList.contains('rv')) { el.classList.add('rv'); io.observe(el); } }), 30);
+    return () => { clearTimeout(t); io.disconnect(); };
+  }, [page, q.toString()]);
   const [cmp, setCmp] = useState([]), [view, setView] = useState(null);
   const toggle = id => setCmp(c => (c.includes(id) ? c.filter(x => x !== id) : c.length && BY[c[0]].cat !== BY[id].cat ? [id] : [...c, id].slice(-3)));
   const ui = { cmp, toggle, show: ids => setView(ids) };
@@ -312,6 +319,7 @@ export default function App() {
       </div>
       {view && <Compare ids={view} sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} onClose={() => setView(null)} />}
       {cmp.length > 0 && !view && <div className="tray"><span>Porovnání: {cmp.map(i => dn(BY[i])).join(' · ')}</span><button className="btn" disabled={cmp.length < 2} onClick={() => setView(cmp)}>Porovnat ({cmp.length})</button><button className="ghost" onClick={() => setCmp([])}>Zrušit</button></div>}
+      <HoverLayer />
       <div className={`toast${toast ? ' on' : ''}`} role="status">{toast}</div>
     </>
   );
