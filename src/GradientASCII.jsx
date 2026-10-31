@@ -25,8 +25,8 @@ void main(){
   float a=texture2D(uA,vec2((idx+f.x)/uN,f.y)).a;
   float y=uv.y;
   vec3 dk=mix(vec3(.024,.071,.114),vec3(.043,.165,.239),smoothstep(1.,.5,y));
-  dk=mix(dk,vec3(.106,.286,.396),smoothstep(.5,.2,y));
-  dk=mix(dk,vec3(.38,.71,.80),smoothstep(.2,0.,y));
+  dk=mix(dk,vec3(.075,.255,.345),smoothstep(.5,.2,y));
+  dk=mix(dk,vec3(.14,.42,.51),smoothstep(.2,0.,y));
   vec3 bg=uL>.5?vec3(.95,.92,.87):dk;
   vec3 ink=uL>.5?c*.75:c;
   vec3 col=bg+c*v*.07*(uL>.5?-1.:1.);

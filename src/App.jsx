@@ -2,10 +2,11 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import GradientASCII from './GradientASCII.jsx';
 import { CATS, PARTS, BY, LOOK, dn, TIERS, SEEDS, GAMES, fpsEff, offers, best, fmt, spec, check, power, rec } from './data.js';
 import logo from './assets/logo.png';
-import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles, HoverLayer, Shards, PdfBtn } from './extra.jsx';
+import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles, HoverLayer, PdfBtn } from './extra.jsx';
 import { Benchmarks } from './bench.jsx';
+import { Assistant } from './assistant.jsx';
 
-const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Hotové sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita']];
+const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita']];
 const AKEY = 'qompify.alerts.v1';
 const KEY = 'qompify.saved.v1';
 const LBL = Object.fromEntries(CATS);
@@ -80,7 +81,7 @@ function Sheet({ cat, sel, onClose, onPick, ui }) {
   );
 }
 
-function Builder({ sel, setSel, add, save, copy, ui }) {
+function Builder({ sel, setSel, add, save, copy, ui, ask }) {
   const [pick, setPick] = useState(null), [focus, setFocus] = useState(null), [name, setName] = useState('');
   const o = objs(sel), res = check(o), draw = power(o), tot = total(sel), n = useTween(tot), ids = Object.values(sel);
   const fp = BY[focus] || BY[ids[ids.length - 1]];
@@ -89,7 +90,6 @@ function Builder({ sel, setSel, add, save, copy, ui }) {
   return (
     <>
       <section className="hero">
-        <Shards />
         <h1>Poskládej PC, které nastartuje na první pokus.</h1>
         <p>Vyber díly. Qompify hlídá socket, zdroj i délku grafiky a hledá nejnižší cenu v pěti českých e-shopech.</p>
       </section>
@@ -135,6 +135,7 @@ function Builder({ sel, setSel, add, save, copy, ui }) {
           </section>
         </aside>
       </div>
+      <Assistant sel={sel} auto={ask} />
       <Sheet ui={ui} cat={pick} sel={sel} onClose={() => setPick(null)} onPick={id => { add(id); setFocus(id); setPick(null); }} />
     </>
   );
@@ -165,7 +166,7 @@ function Tiers({ go, save }) {
               ))}
             </div>
             <ul className="badges inline">{[r.res.every(x => x.l === 'ok') ? { l: 'ok', t: 'Vše kompatibilní' } : { l: 'warn', t: 'Zkontroluj kompatibilitu' }].map((b, i) => <Badge key={i} {...b} />)}</ul>
-            <div className="actions"><button className="btn" onClick={() => go('builder', r.ids.join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(r.label, r.sel)}>Uložit</button><PdfBtn title={r.label} ids={r.ids} /></div>
+            <div className="actions"><button className="btn" onClick={() => go('builder', r.ids.join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(r.label, r.sel)}>Uložit</button><PdfBtn title={r.label} ids={r.ids} /><button className="ghost" onClick={() => go('builder', r.ids.join(',') + '&ask=1')}>Proč tyto díly?</button></div>
           </article>
         ))}
       </div>
@@ -305,15 +306,15 @@ export default function App() {
   return (
     <>
       <div className="bg"><GradientASCII colors={['#3B66F5', '#F3EBDD', '#4A75FF', '#1E3FD8']} shape="horizon" characters=" =+xX0S8#@" lightMode={false} /></div>
-      <div className="app">
+      <div className={`app${page === 'porovnat' ? ' wide' : ''}`}>
         <header className="nav">
           <a className="brand" href="#/builder"><img src={logo} alt="" /><span>Qompify</span></a>
-          <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <sup>{saved.length}</sup> : null}</a>)}</nav>
+          <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <span className="nb">{saved.length}</span> : null}</a>)}</nav>
         </header>
         {hit.length > 0 && <div className="banner" role="status">Cena klesla: {hit.map(([id, al]) => `${dn(LOOK[id])} (${fmt(best(LOOK[id]).price)}, cíl ${fmt(al.target)})`).join(' · ')}</div>}
         <p className="hint">Tip: šipkami ← a → přepínáš mezi nástroji.</p>
         <main key={page} className="view">
-          {page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles a={q.get('a')} /> : page === 'benchmarky' ? <Benchmarks /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} />}
+          {page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles a={q.get('a')} /> : page === 'benchmarky' ? <Benchmarks /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} ask={q.get('ask')} />}
         </main>
         <Footer />
       </div>

@@ -97,18 +97,26 @@ export function Compare({ ids, onClose, ...rest }) {
 }
 
 export function ComparePage({ sel, add, say, alerts, setAlert }) {
-  const [cat, setCat] = useState('cpu'), [ids, setIds] = useState([]), [q, setQ] = useState('');
-  const list = PARTS.filter(p => p.cat === cat && dn(p).toLowerCase().includes(q.toLowerCase())).sort((a, b) => best(a).price - best(b).price);
-  const tog = id => setIds(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id].slice(-4)));
+  const GROUPS = [...CATS, ['monitor', 'Monitory']], MAX = 5;
+  const [cat, setCat] = useState('cpu'), [ids, setIds] = useState([]), [q, setQ] = useState(''), [brand, setBrand] = useState(''), [sort, setSort] = useState('price');
+  const poolOf = c => (c === 'monitor' ? MONITORS : PARTS.filter(p => p.cat === c)), pool = poolOf(cat), brands = [...new Set(pool.map(p => p.brand))].sort();
+  const list = pool.filter(p => (!brand || p.brand === brand) && dn(p).toLowerCase().includes(q.toLowerCase())).sort((a, b) => sort === 'price' ? best(a).price - best(b).price : sort === 'priceD' ? best(b).price - best(a).price : (perf(b) || 0) - (perf(a) || 0) || best(a).price - best(b).price);
+  const tog = id => setIds(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id].slice(-MAX)));
   return (
     <>
-      <Head title="Porovnání dílů do detailu" sub="Vyber kategorii a až čtyři díly. Uvidíš všechny parametry vedle sebe, vývoj ceny a to, jak díl sedí do tvé sestavy." />
-      <section className="card filters">
-        <div className="chips">{CATS.map(([c, l]) => <button key={c} className={cat === c ? 'on' : ''} onClick={() => { setCat(c); setIds([]); }}>{l}</button>)}</div>
-        <label className="frow">Hledat<input value={q} onChange={e => setQ(e.target.value)} placeholder="např. Ryzen, RTX, Samsung" /></label>
-        <div className="picklist">{list.map(p => <button key={p.id} data-part={p.id} className={ids.includes(p.id) ? 'on' : ''} onClick={() => tog(p.id)}><b>{dn(p)}</b><small>{spec(p)}</small><span>{fmt(best(p).price)}</span></button>)}</div>
-      </section>
-      <section className="card cpage">{ids.length ? <CompareTable ids={ids} sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : <p className="muted">Vyber alespoň jeden díl. Pro porovnání zvol dva až čtyři.</p>}</section>
+      <Head title="Porovnání dílů do detailu" sub={`Vyber kategorii a až ${MAX} dílů. Vedle sebe uvidíš všechny parametry, vývoj ceny a to, jak díl sedí do tvé sestavy. Najdeš tu i monitory.`} />
+      <div className="cmpgrid">
+        <section className="card cmpl">
+          <div className="chips">{GROUPS.map(([c, l]) => <button key={c} className={cat === c ? 'on' : ''} onClick={() => { setCat(c); setIds([]); setBrand(''); setQ(''); }}>{l} <small>{poolOf(c).length}</small></button>)}</div>
+          <div className="frow"><label>Hledat<input value={q} onChange={e => setQ(e.target.value)} placeholder="např. Ryzen, RTX, Samsung" /></label>
+            <label>Značka<select value={brand} onChange={e => setBrand(e.target.value)}><option value="">Všechny</option>{brands.map(b => <option key={b}>{b}</option>)}</select></label>
+            <label>Řadit<select value={sort} onChange={e => setSort(e.target.value)}><option value="price">Cena od nejnižší</option><option value="priceD">Cena od nejvyšší</option><option value="perf">Výkon</option></select></label></div>
+          <div className="sel" aria-label="Vybrané díly">{ids.length ? ids.map(id => <button key={id} onClick={() => tog(id)} title="Odebrat z porovnání">{dn(LOOK[id])} ×</button>) : <span className="muted">Vybráno 0 z {MAX}</span>}</div>
+          <p className="muted">{list.length} z {pool.length} položek</p>
+          <div className="picklist tall">{list.map(p => <button key={p.id} data-part={p.id} className={ids.includes(p.id) ? 'on' : ''} onClick={() => tog(p.id)}><b>{dn(p)}</b><small>{p.cat === 'monitor' ? `${p.size}" · ${p.res} · ${p.panel} · ${p.hz} Hz` : spec(p)}</small><span>{fmt(best(p).price)}</span></button>)}</div>
+        </section>
+        <section className="card cpage">{ids.length ? <CompareTable ids={ids} sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : <p className="muted">Vyber alespoň jeden díl v seznamu vlevo. Pro porovnání zvol dva až {MAX}.</p>}</section>
+      </div>
     </>
   );
 }
@@ -116,20 +124,6 @@ export function ComparePage({ sel, add, say, alerts, setAlert }) {
 export function PdfBtn({ title, ids, className = 'ghost' }) {
   const [busy, setBusy] = useState(false);
   return <button className={className} disabled={busy} onClick={async () => { setBusy(true); try { await downloadBuildPdf(title, ids); } finally { setBusy(false); } }}>{busy ? 'Připravuji PDF…' : 'Stáhnout PDF'}</button>;
-}
-
-export function Shards() {
-  return (
-    <svg className="shards" viewBox="0 0 420 300" aria-hidden="true">
-      <defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#cdeef5" /><stop offset="1" stopColor="#62b6cb" /></linearGradient></defs>
-      <g fill="none" stroke="url(#gl)" strokeWidth="1.4" strokeLinejoin="round">
-        <path pathLength="1" d="M210 12 L300 120 L250 290 L150 290 L110 130 Z" />
-        <path pathLength="1" d="M210 12 L250 290 M210 12 L150 290 M110 130 L300 120" />
-        <path pathLength="1" d="M300 120 L400 190 L330 260 L250 290" />
-        <path pathLength="1" d="M110 130 L20 200 L80 270 L150 290" />
-      </g>
-    </svg>
-  );
 }
 
 export function DealsBar({ ui }) {
@@ -212,7 +206,7 @@ export function Optimizer({ go, save }) {
               <ul className="parts">{CATS.filter(([c]) => x.o[c]).map(([c, l]) => <li key={c}><span>{l}</span><span data-part={x.o[c].id}>{dn(x.o[c])}</span><b>{fmt(best(x.o[c]).price)}</b></li>)}</ul>
               {g && <p className="muted">{[0, 7, 8].map(k => `${GAMES[k][0]} ${fpsEff(g, x.o.cpu, GAMES[k][2])} FPS`).join(' · ')}</p>}
               <ul className="badges inline">{res.filter(b => b.l !== 'ok').slice(0, 2).map((b, j) => <Badge key={j} {...b} />)}{res.every(b => b.l === 'ok') && <Badge l="ok" t="Vše kompatibilní a vyvážené" />}</ul>
-              <div className="actions"><button className="btn" onClick={() => go('builder', Object.values(sel).join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(`Na míru ${fmt(r.a.n)}`, sel)}>Uložit</button><PdfBtn title={`Na míru ${fmt(r.a.n)}`} ids={Object.values(sel)} /></div>
+              <div className="actions"><button className="btn" onClick={() => go('builder', Object.values(sel).join(','))}>Upravit ve stavitelu</button><button className="ghost" onClick={() => save(`Na míru ${fmt(r.a.n)}`, sel)}>Uložit</button><PdfBtn title={`Na míru ${fmt(r.a.n)}`} ids={Object.values(sel)} /><button className="ghost" onClick={() => go('builder', Object.values(sel).join(',') + '&ask=1')}>Proč tyto díly?</button></div>
             </article>
           );
         })}

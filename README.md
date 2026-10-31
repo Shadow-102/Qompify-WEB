@@ -31,3 +31,9 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - Karta s parametry při najetí myší na díl (atribut `data-part="id-dílu"` na libovolném prvku).
 - Export PDF každé sestavy (`src/pdf.js`, bez knihoven): tlačítko „Stáhnout PDF“ u každé sestavy.
 - Články: text a interaktivní komponenty se střídají; slovníčky parametrů.
+
+## Verze 1.4
+- Horní lišta: záložky se zalamují místo ořezávání (Komunita je vždy vidět), štítek počtu je zarovnaný.
+- Odstraněn trojúhelníkový obrazec na pozadí, tmavší spodek gradientu a tmavé panely pod texty článků kvůli čitelnosti.
+- Porovnat: široké okno, seznam všech dílů včetně monitorů, filtr značky, řazení, až 5 dílů vedle sebe.
+- Asistent sestavy (`src/assistant.jsx`): vysvětluje, proč jsou v sestavě dané díly, z dat katalogu a cen. Otevře se i tlačítkem „Proč tyto díly?“.
