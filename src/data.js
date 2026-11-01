@@ -138,7 +138,7 @@ export const RETAILERS = [
 const hs = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 export const VERIFIED = [
   { id: 'rx9060xt-16', price: 12490, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/graficke-karty-amd-radeon.html', note: 'Nejlevnější RX 9060 XT 16 GB v katalogu Datartu, další kusy stojí 12 790 až 13 490 Kč.' },
-  { id: 'rx9070xt', price: 18490, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/graficke-karty-amd-radeon.html', note: 'Nejlevnější RX 9070 XT v katalogu Datartu, další kusy stojí 18 690 až 23 990 Kč.' },
+  { id: 'rx9070xt', price: 18490, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/graficke-karty-amd-radeon.html', note: 'Nejlevnější RX 9070 XT v katalogu Datartu, ostatní kusy jsou dražší.' },
   { id: 'rtx5070ti', price: 29990, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/graficke-karty-nvidia-rtx-5070-ti.html', note: 'Nejlevnější RTX 5070 Ti v Datartu (další kusy 31 490 Kč). Dostupnost této karty se podle zahraničních médií zhoršuje.' },
   { id: 'd5-32-5600', price: 11390, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/pameti-ram-ddr5-32-gb.html', note: 'Nejlevnější sada 32 GB DDR5 v Datartu. Paměti jsou kvůli nedostatku výrazně dražší než loni.' },
   { id: 'ssd-1t4', price: 3690, shop: 'Datart', date: 'říjen 2026', src: 'https://www.datart.cz/ssd-disky-s-kapacitou-1-tb.html', note: 'Nejlevnější 1 TB NVMe PCIe 4.0 SSD v Datartu.' },

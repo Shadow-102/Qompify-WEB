@@ -37,3 +37,6 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - Odstraněn trojúhelníkový obrazec na pozadí, tmavší spodek gradientu a tmavé panely pod texty článků kvůli čitelnosti.
 - Porovnat: široké okno, seznam všech dílů včetně monitorů, filtr značky, řazení, až 5 dílů vedle sebe.
 - Asistent sestavy (`src/assistant.jsx`): vysvětluje, proč jsou v sestavě dané díly, z dat katalogu a cen. Otevře se i tlačítkem „Proč tyto díly?“.
+
+## Verze 1.4.1
+- Přidán `AI_BRIEF.md`: kompletní popis projektu, struktury kódu, procesu vývoje, nasazení a nápadů pro AI asistenta (vložit do prvního promptu nové konverzace).
