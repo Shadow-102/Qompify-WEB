@@ -40,3 +40,11 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 
 ## Verze 1.4.1
 - Přidán `AI_BRIEF.md`: kompletní popis projektu, struktury kódu, procesu vývoje, nasazení a nápadů pro AI asistenta (vložit do prvního promptu nové konverzace).
+
+## Verze 1.5.0
+- **Asistent:** nový výpočet nejlepšího poměru cena/výkon (`src/value.js`). Z kompatibilních sestav v rozpočtu vybere tu s nejvyšším výkonem na korunu, která má aspoň 85 % výkonu nejrychlejší sestavy. Napiš „nejlepší sestava za 30 000 Kč“ nebo se zeptej „je moje sestava výhodná?“. Na vše, čemu nerozumí, odpoví „S touto žádostí neumím pomoci“. Hlavička ukazuje, že je ve velmi rané beta verzi.
+- **Nová záložka O nás** a právní stránky (`src/legal.jsx`): Ochrana údajů, Podmínky použití, Vrácení a reklamace, Cookies a úložiště, Moje data (export a smazání dat), Provozovatel. Cookie oznámení a odkazy v patičce.
+- **Doplňte své údaje** v objektu `LEGAL` na začátku `src/legal.jsx` (jméno, IČO, adresa, e-mail). Dokud chybí, stránka Provozovatel zobrazuje upozornění.
+- **Poctivost dat:** ukázkové sestavy v Komunitě už nemají vymyšlené autory ani počty srdíček, simulované „slevy“ v nabídkách jsou označené „Simulace“, grafy historie a ceny obchodů mají poznámku o simulaci, z patičky zmizelo tvrzení o provizi (žádné partnerské odkazy zatím nemáme).
+- `optimize()` navíc vrací `all` (všechny kompatibilní kombinace v rozpočtu). Ostatní chování beze změny.
+

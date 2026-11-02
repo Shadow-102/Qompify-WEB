@@ -1,7 +1,6 @@
-// Qompify — O nás, právní stránky, cookie oznámení, smazání dat.
-// Samostatný modul: vlastní React root, žádná úprava App.jsx. Zapojení: viz main.jsx (mountLegal()).
-import { useEffect, useRef, useState } from 'react'
-import { createRoot } from 'react-dom/client'
+// Qompify — O nás, právní stránky, cookie oznámení, smazání dat. Stránky se zobrazují jako běžné záložky (hash routa #/onas, #/ochrana-udaju …).
+import { useEffect, useState } from 'react'
+import { Head } from './extra.jsx'
 import './legal.css'
 
 // ▼▼ DOPLŇTE SVÉ ÚDAJE (zákon vyžaduje identifikaci provozovatele webu). Prázdné pole se na webu zobrazí jako upozornění. ▼▼
@@ -23,9 +22,6 @@ const store = {
   del: (k) => { try { localStorage.removeItem(k) } catch { /* nic */ } },
 }
 const count = (k) => { try { const v = JSON.parse(store.get(k) || 'null'); return Array.isArray(v) ? v.length : v ? Object.keys(v).length : 0 } catch { return 0 } }
-
-const slugOf = () => location.hash.replace(/^#\/?/, '').split('?')[0]
-const go = (slug) => { location.hash = '#/' + slug }
 
 const H = ({ children }) => <h2>{children}</h2>
 const L = ({ items }) => <ul>{items.map((t, i) => <li key={i}>{t}</li>)}</ul>
@@ -74,7 +70,7 @@ function MyData() {
 }
 
 const PAGES = {
-  'o-nas': ['O nás', () => (
+  onas: ['O nás', () => (
     <>
       <p className="qlg-lead">Qompify pomáhá postavit počítač, který po sestavení hned funguje a nestojí víc, než musí.</p>
       <p className="qlg-beta"><b>Beta verze.</b> Web je v rané fázi a leccos je ještě syrové. Když něco nesedí, počítej s tím, že je to chyba na naší straně.</p>
@@ -87,10 +83,12 @@ const PAGES = {
         'Ověřená cena: viděli jsme ji u uvedeného českého obchodu k uvedenému datu.',
         'Orientační cena: odhad. Je takto označená všude, kde se objeví.',
         'Ceny u dalších obchodů se zatím dopočítávají ze základní ceny dílu, nejsou to živé nabídky. Před nákupem je vždy ověř u obchodu.',
-        'FPS jsou modelový odhad, ne měření. Historie cen je zatím simulovaná, dokud nepřipojíme živé cenové feedy.',
+        'FPS jsou modelový odhad, ne měření. Historie cen a „slevy“ proti 30denní historii jsou zatím simulované, dokud nepřipojíme živé cenové feedy.',
+        'Sestavy v záložce Komunita jsou ukázky, které připravil provozovatel, ne sestavy skutečných uživatelů.',
+        'Asistent sestavy je ve velmi rané beta verzi. Odpovídá jen z dat katalogu a umí se spletnout.',
       ]} />
       <H>Co Qompify není</H>
-      <p>Není e-shop a nic neprodává. Nemá účty a nesbírá osobní údaje. Odkazy vedou do obchodů, kde nákup dokončíš. Qompify na nich nic nevydělává.</p>
+      <p>Není e-shop a nic neprodává. Nemá účty a nesbírá osobní údaje. Odkazy vedou do obchodů, kde nákup dokončíš. Z nákupů přes ně zatím nemáme žádnou provizi. Kdybychom partnerské odkazy zavedli, označíme je a doplníme tuto stránku.</p>
       <p><a href="#/provozovatel">Kdo web provozuje</a> · <a href="#/ochrana-udaju">Jak nakládáme s údaji</a></p>
     </>
   )],
@@ -160,37 +158,39 @@ const PAGES = {
   )],
 }
 
-function Overlay({ slug }) {
-  const h1 = useRef(null)
-  useEffect(() => { h1.current?.focus(); window.scrollTo?.(0, 0) }, [slug])
-  useEffect(() => {
-    const key = (e) => {
-      if (e.key === 'Escape') go('builder')
-      // zabrání hlavní aplikaci přepínat záložky šipkami, dokud je stránka otevřená
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') e.stopImmediatePropagation()
-    }
-    window.addEventListener('keydown', key, true)
-    return () => window.removeEventListener('keydown', key, true)
-  }, [])
+const SUB = {
+  onas: 'Co je Qompify, proč vzniklo a jak zacházíme s daty.',
+  'ochrana-udaju': 'Jaké údaje zpracováváme, komu je předáváme a jaká máš práva.',
+  podminky: 'Pravidla používání webu.',
+  vraceni: 'Qompify nic neprodává. Tady je, jak to chodí v e-shopech, kam odkazujeme.',
+  cookies: 'Cookies nepoužíváme. Co ukládáme do prohlížeče a proč.',
+  'moje-data': 'Podívej se, co je uložené u tebe v prohlížeči, stáhni si to nebo to smaž.',
+  provozovatel: 'Kdo web provozuje a jak nás kontaktovat.',
+}
+export const INFO = Object.keys(PAGES)
+
+export function InfoPage({ slug }) {
   const [title, Body] = PAGES[slug]
+  useEffect(() => { window.scrollTo?.(0, 0) }, [slug])
   return (
-    <div className="qlg-over" role="dialog" aria-modal="true" aria-labelledby="qlg-h1">
-      <div className="qlg-wrap">
-        <nav className="qlg-nav" aria-label="Informace o webu">
-          <a className="qlg-chip back" href="#/builder">← Zpět na web</a>
-          {Object.entries(PAGES).map(([s, [t]]) => <a key={s} href={'#/' + s} className={'qlg-chip' + (s === slug ? ' on' : '')} aria-current={s === slug ? 'page' : undefined}>{t}</a>)}
-        </nav>
-        <article className="qlg-panel">
-          <h1 id="qlg-h1" ref={h1} tabIndex={-1}>{title}</h1>
-          <Body />
-          <p className="qlg-date">Poslední aktualizace: {LEGAL.updated}</p>
-        </article>
-      </div>
-    </div>
+    <>
+      <Head title={title} sub={SUB[slug]} />
+      <nav className="qlg-nav" aria-label="Informace o webu">
+        {INFO.map((s) => <a key={s} href={'#/' + s} className={'qlg-chip' + (s === slug ? ' on' : '')} aria-current={s === slug ? 'page' : undefined}>{PAGES[s][0]}</a>)}
+      </nav>
+      <article className="qlg-panel">
+        <Body />
+        <p className="qlg-date">Poslední aktualizace: {LEGAL.updated}</p>
+      </article>
+    </>
   )
 }
 
-function CookieNotice() {
+export function LegalLinks() {
+  return <nav className="qlg-links" aria-label="Právní informace">{INFO.map((s) => <a key={s} href={'#/' + s}>{PAGES[s][0]}</a>)}</nav>
+}
+
+export function CookieNotice() {
   const [show, setShow] = useState(() => !store.get(KEY.consent))
   if (!show) return null
   return (
@@ -199,24 +199,4 @@ function CookieNotice() {
       <button className="qlg-btn" onClick={() => { store.set(KEY.consent, '1'); setShow(false) }}>Rozumím</button>
     </div>
   )
-}
-
-function Legal() {
-  const [slug, setSlug] = useState(slugOf)
-  useEffect(() => { const f = () => setSlug(slugOf()); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])
-  return (
-    <>
-      <footer className="qlg-foot" aria-label="Právní informace">
-        {Object.entries(PAGES).map(([s, [t]]) => <a key={s} href={'#/' + s}>{t}</a>)}
-      </footer>
-      {PAGES[slug] && <Overlay slug={slug} />}
-      <CookieNotice />
-    </>
-  )
-}
-
-export function mountLegal() {
-  if (document.getElementById('qompify-legal')) return
-  const el = document.createElement('div'); el.id = 'qompify-legal'; document.body.appendChild(el)
-  createRoot(el).render(<Legal />)
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import BellToggle from './BellToggle.jsx';
 import JellyRadio from './JellyRadio.jsx';
 import { downloadBuildPdf } from './pdf.js';
-import { CATS, PARTS, BY, LOOK, SPEC, GAMES, MONITORS, RES_K, showVal, perf, dn, offers, best, fmt, spec, check, power, history, deals, optimize, fpsEff, VERIFIED } from './data.js';
+import { CATS, PARTS, BY, LOOK, SPEC, GAMES, MONITORS, RES_K, showVal, perf, dn, offers, best, fmt, spec, check, power, history, deals, optimize, fpsEff, VERIFIED, liveHist, liveOffers } from './data.js';
 
 const LBL = Object.fromEntries(CATS);
 const objs = sel => Object.fromEntries(Object.entries(sel).map(([c, id]) => [c, BY[id]]));
@@ -13,14 +13,17 @@ export const Head = ({ title, sub }) => <section className="hero slim"><h1>{titl
 export function Offers({ p }) {
   const os = offers(p).slice().sort((a, b) => a.price - b.price), low = os.find(o => o.stock);
   return (
+    <>
     <ul className="offers">
       {os.map(x => (
         <li key={x.n} className={!x.stock ? 'out' : x === low ? 'low' : ''}>
           <span>{x.n}</span><b>{fmt(x.price)}</b><em>{x.stock ? (x === low ? 'Nejlevnější' : 'Skladem') : 'Není skladem'}</em>
-          <a href={x.url} target="_blank" rel="sponsored noopener noreferrer">Koupit</a>
+          <a href={x.url} target="_blank" rel="noopener noreferrer">Koupit</a>
         </li>
       ))}
     </ul>
+    {!liveOffers(p) && <p className="simnote">Ceny a skladovost u obchodů jsou zatím orientační. Ověřená je jen cena označená jako „Ověřeno“. Před nákupem ji zkontroluj u obchodu.</p>}
+    </>
   );
 }
 
@@ -37,6 +40,7 @@ export function PriceChart({ p, w = 300, h = 96 }) {
         <path d={`${d}L${X(n)},${h}L${X(0)},${h}Z`} className="area" /><path d={d} className="line" /><circle cx={X(i)} cy={Y(vs[i])} r="4" />
       </svg>
       <small>{dt(hist[i].d)}: <b>{fmt(vs[i])}</b> · min {fmt(lo)} · max {fmt(hi)} · za 90 dní {chg > 0 ? '+' : ''}{chg} %</small>
+      {!liveHist(p) && <small className="simnote">Simulovaná historie, zatím bez živých dat o cenách.</small>}
     </div>
   );
 }
@@ -134,13 +138,13 @@ export function DealsBar({ ui }) {
   }, []);
   return (
     <section className="deals" aria-label="Nejlepší nabídky">
-      <div className="dh"><h2>Nejlepší nabídky právě teď</h2><small>Najeď na kartu pro parametry dílu. Značka „Ověřeno“ znamená cenu ověřenou v e-shopu nebo v článku se zdrojem.</small></div>
+      <div className="dh"><h2>Nejlepší nabídky právě teď</h2><small>Najeď na kartu pro parametry dílu. Značka „Ověřeno“ znamená cenu ověřenou v e-shopu nebo v článku se zdrojem. Karty se značkou „Simulace“ vycházejí z modelu vývoje cen, nejde o skutečné slevy.</small></div>
       <div className="strip">
         {items.map(d => (
-          <article className="deal" key={d.p.id} data-part={d.p.id} data-note={d.v ? d.v.note : `Cena je o ${d.pct} % níž než průměr za posledních 30 dní (model vývoje cen).`} tabIndex={0}>
+          <article className="deal" key={d.p.id} data-part={d.p.id} data-note={d.v ? d.v.note : liveHist(d.p) ? `Cena je o ${d.pct} % níž než průměr za posledních 30 dní.` : `Simulace: model vývoje cen dává o ${d.pct} % nižší cenu než 30denní průměr. Není to skutečná sleva.`} tabIndex={0}>
             <small>{d.p.cat === 'monitor' ? 'Monitor' : LBL[d.p.cat]}</small><b>{dn(d.p)}</b>
-            <div><span className={d.v ? 'chip ok' : 'pct'}>{d.v ? 'Ověřeno' : `−${d.pct} %`}</span><span className="dp">{fmt(d.pr)}</span></div>
-            <small>{d.shop}{d.v ? ` · ${d.v.date}` : ' · proti 30denní historii'}</small>
+            <div><span className={d.v ? 'chip ok' : 'pct'}>{d.v ? 'Ověřeno' : liveHist(d.p) ? `−${d.pct} %` : `Simulace −${d.pct} %`}</span><span className="dp">{fmt(d.pr)}</span></div>
+            <small>{d.shop}{d.v ? ` · ${d.v.date}` : (liveHist(d.p) ? ' · proti 30denní historii' : ' · simulovaná historie')}</small>
             <div className="dact"><button onClick={() => ui.show([d.p.id])}>Detail a cena</button>{d.v && <a href={d.v.src} target="_blank" rel="noopener noreferrer">Zdroj</a>}</div>
           </article>
         ))}

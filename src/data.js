@@ -222,6 +222,9 @@ export const MONITORS = [
 ];
 export const LOOK = { ...BY, ...Object.fromEntries(MONITORS.map(m => [m.id, m])) };
 
+// true jen když máme skutečná data z cenových feedů (prices.json); jinak je historie i dostupnost simulovaná
+export const liveHist = p => (LIVE.items?.[p.id]?.hist?.length || 0) > 2;
+export const liveOffers = p => offers(p).some(o => o.live);
 const hcache = new Map();
 export const history = p => {
   if (hcache.has(p.id)) return hcache.get(p.id);
@@ -268,5 +271,5 @@ export function optimize(budget, use, brand) {
   out.sort((a, b) => b.score - a.score);
   const seen = new Set(), list = [];
   for (const r of out) { const k = r.o.cpu.id + (r.o.gpu?.id || ''); if (seen.has(k)) continue; seen.add(k); list.push(r); if (list.length === 3) break; }
-  return { list, min };
+  return { list, min, all: out };
 }

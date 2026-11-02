@@ -5,8 +5,9 @@ import logo from './assets/logo.png';
 import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles, HoverLayer, PdfBtn } from './extra.jsx';
 import { Benchmarks } from './bench.jsx';
 import { Assistant } from './assistant.jsx';
+import { InfoPage, INFO, CookieNotice, LegalLinks } from './legal.jsx';
 
-const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita']];
+const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita'], ['onas', 'O nás']];
 const AKEY = 'qompify.alerts.v1';
 const KEY = 'qompify.saved.v1';
 const LBL = Object.fromEntries(CATS);
@@ -220,11 +221,11 @@ function Community({ saved, persist, go, copy, alerts, setAlert }) {
     return (
       <article className="card build" key={b.id}>
         <header><h2>{b.name}</h2><b>{fmt(tot)}</b></header>
-        <p className="muted">{mine ? `Uloženo ${b.at}` : `od ${b.by}`} · {o.cpu?.name}, {o.gpu?.name}</p>
+        <p className="muted">{mine ? `Uloženo ${b.at}` : 'Ukázková sestava'} · {o.cpu?.name}, {o.gpu?.name}</p>
         <ul className="badges inline"><Badge l={ok ? 'ok' : 'warn'} t={ok ? 'Vše kompatibilní' : 'Zkontroluj kompatibilitu'} /></ul>
         <div className="actions">
           <button className="btn" onClick={() => go('builder', b.ids.join(','))}>Otevřít</button>
-          {!mine && <button className={`ghost${liked[b.id] ? ' on' : ''}`} aria-pressed={!!liked[b.id]} onClick={() => setLiked(l => ({ ...l, [b.id]: !l[b.id] }))}>♥ {b.likes + (liked[b.id] ? 1 : 0)}</button>}
+          {!mine && <button className={`ghost${liked[b.id] ? ' on' : ''}`} aria-pressed={!!liked[b.id]} onClick={() => setLiked(l => ({ ...l, [b.id]: !l[b.id] }))}>♥ Líbí se mi</button>}
           {mine && <button className="ghost" onClick={() => persist(saved.filter(s => s.id !== b.id))}>Smazat</button>}
         </div>
         <Share ids={b.ids} title={`${b.name} za ${fmt(tot)}, Qompify`} copy={copy} />
@@ -233,7 +234,7 @@ function Community({ saved, persist, go, copy, alerts, setAlert }) {
   };
   return (
     <>
-      <Head title="Uložené sestavy a komunita" sub="Ukládej si konfigurace, posílej je kamarádům a nech se inspirovat sestavami ostatních." />
+      <Head title="Uložené sestavy a komunita" sub="Ukládej si konfigurace, posílej je kamarádům a nech se inspirovat ukázkovými sestavami." />
       <h2 className="sec">Moje sestavy</h2>
       <div className="tiers">{saved.length ? saved.map(b => card(b, true)) : <div className="card empty">Zatím nic uloženého. Sestav PC ve Stavitelu a stiskni Uložit sestavu.</div>}</div>
       <h2 className="sec">Hlídané ceny</h2>
@@ -243,7 +244,8 @@ function Community({ saved, persist, go, copy, alerts, setAlert }) {
           <p className="muted">Cíl {fmt(al.target)} · {best(LOOK[id]).price <= al.target ? 'cíl splněn, cena je pod hranicí' : 'zatím nad cílem'}</p>
           <div className="actions"><button className="ghost" onClick={() => setAlert(id, null)}>Zrušit hlídání</button></div>
         </article>)) : <div className="card empty">Zatím nic nehlídáš. Otevři Detail dílu a nastav cílovou cenu.</div>}</div>
-      <h2 className="sec">Sestavy z komunity</h2>
+      <h2 className="sec">Ukázkové sestavy</h2>
+      <p className="muted samp">Tyto sestavy připravil provozovatel jako inspiraci, nejsou od skutečných uživatelů. Označení „Líbí se mi“ se ukládá jen u tebe.</p>
       <div className="tiers">{SEEDS.map(b => card(b, false))}</div>
     </>
   );
@@ -258,12 +260,13 @@ function Footer() {
       </div>
       <div>
         <h3>Partnerské odkazy</h3>
-        <p>Odkazy „Koupit“ vedou do e-shopů Alza, Datart, Mironet, TS Bohemia a CZC.cz. Za nákup přes ně můžeme získat provizi, cena se pro tebe nezmění.</p>
+        <p>Odkazy „Koupit“ vedou do e-shopů Alza, Datart, Mironet, TS Bohemia a CZC.cz. Z nákupů přes ně zatím nemáme žádnou provizi. Pokud partnerské odkazy zavedeme, označíme je.</p>
       </div>
       <div>
         <h3>Ceny a dostupnost</h3>
         <p>Část cen je ověřená na českých e-shopech (10/2026), zbytek jsou odhady a rozdíly mezi obchody jsou simulované, dokud nenapojíš živé feedy. Před nákupem vždy ověř cenu a skladovost u obchodu.</p>
       </div>
+      <LegalLinks />
       <p className="legal">© {new Date().getFullYear()} Qompify. Názvy produktů a značek patří jejich vlastníkům.</p>
     </footer>
   );
@@ -309,18 +312,19 @@ export default function App() {
       <div className={`app${page === 'porovnat' ? ' wide' : ''}`}>
         <header className="nav">
           <a className="brand" href="#/builder"><img src={logo} alt="" /><span>Qompify</span></a>
-          <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <span className="nb">{saved.length}</span> : null}</a>)}</nav>
+          <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page) && !INFO.includes(page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <span className="nb">{saved.length}</span> : null}</a>)}</nav>
         </header>
         {hit.length > 0 && <div className="banner" role="status">Cena klesla: {hit.map(([id, al]) => `${dn(LOOK[id])} (${fmt(best(LOOK[id]).price)}, cíl ${fmt(al.target)})`).join(' · ')}</div>}
         <p className="hint">Tip: šipkami ← a → přepínáš mezi nástroji.</p>
         <main key={page} className="view">
-          {page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles a={q.get('a')} /> : page === 'benchmarky' ? <Benchmarks /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} ask={q.get('ask')} />}
+          {INFO.includes(page) ? <InfoPage slug={page} /> : page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles a={q.get('a')} /> : page === 'benchmarky' ? <Benchmarks /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} ask={q.get('ask')} />}
         </main>
         <Footer />
       </div>
       {view && <Compare ids={view} sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} onClose={() => setView(null)} />}
       {cmp.length > 0 && !view && <div className="tray"><span>Porovnání: {cmp.map(i => dn(BY[i])).join(' · ')}</span><button className="btn" disabled={cmp.length < 2} onClick={() => setView(cmp)}>Porovnat ({cmp.length})</button><button className="ghost" onClick={() => setCmp([])}>Zrušit</button></div>}
       <HoverLayer />
+      <CookieNotice />
       <div className={`toast${toast ? ' on' : ''}`} role="status">{toast}</div>
     </>
   );

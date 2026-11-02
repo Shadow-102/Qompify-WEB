@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CATS, PARTS, BY, GAMES, best, dn, fmt, check, power, rec, fpsAt, perf } from './data.js';
+import { bestValue, avgFps, totalOf } from './value.js';
 
 const LBL = Object.fromEntries(CATS);
 const pr = p => best(p).price;
@@ -74,22 +75,73 @@ const savings = o => {
   return out.sort((a, b) => b.save - a.save);
 };
 
-export function answer(q, sel) {
-  const o = objs(sel), t = norm(q);
-  if (!Object.keys(o).length) return [{ lines: ['Sestava je zatím prázdná. Vyber díly nebo načti hotovou sestavu a hned ti vysvětlím, proč v ní jsou.'] }];
-  const has = (...k) => k.some(x => t.includes(x));
-  const map = [['cpu', ['procesor', 'cpu']], ['gpu', ['grafik', 'gpu', 'karta', 'karty']], ['ram', ['ram', 'pamet']], ['mb', ['desk', 'chipset', 'socket']], ['psu', ['zdroj', 'napaj']], ['case', ['skrin', 'case']], ['ssd', ['ssd', 'disk', 'uloz']]];
-  const cat = map.find(([, k]) => has(...k))?.[0];
-  if (has('vylepsit', 'upgrade', 'pridat', 'zlepsit', 'prihodit')) { const b = parseInt((t.replace(/\s/g, '').match(/(\d{3,6})/) || [])[1] || '5000'); const u = upgrades(o, b); return [{ lines: u.length ? [`S příplatkem do ${fmt(b)} se nejvíc vyplatí:`, ...u] : [`S příplatkem do ${fmt(b)} už nenacházím kompatibilní zlepšení, které by se vyplatilo.`] }]; }
-  if (has('usetrit', 'levnej', 'levne', 'snizit', 'ubrat')) { const s = savings(o); return [{ lines: s.length ? [`Kde jde ušetřit bez větší újmy (celkem až ${fmt(s.reduce((a, x) => a + x.save, 0))}):`, ...s.slice(0, 4).map(x => x.t)] : ['Sestava je už skoro nejlevnější možná: levnější kompatibilní díly se stejným výkonem v katalogu nemám.'] }]; }
-  if (has('hry', 'hra', 'fps', 'hrat', 'cyberpunk')) { if (!o.gpu || !o.cpu) return [{ lines: ['Na odhad FPS potřebuji v sestavě procesor i grafiku.'] }]; return [{ lines: ['Odhad FPS na vysoké detaily (1080p / 1440p):', ...[0, 1, 4, 7].map(i => `${GAMES[i][0]}: ${fpsAt(o.gpu, o.cpu, i, 'FHD', 2)} / ${fpsAt(o.gpu, o.cpu, i, 'QHD', 2)} FPS`), 'Jde o odhad, ne o naměřená data.'] }]; }
-  if (has('brzd', 'bottleneck', 'vyvazen')) { if (!o.gpu || !o.cpu) return [{ lines: ['Potřebuji v sestavě procesor i grafiku.'] }]; const r = o.gpu.sc / o.cpu.sc; return [{ lines: [r > 2.1 ? `Ano, procesor ${dn(o.cpu)} může brzdit grafiku ${dn(o.gpu)} (poměr ${r.toFixed(1)}, ideál je 0,5 až 2).` : r < 0.42 ? `Opačně: procesor je pro grafiku předimenzovaný (poměr ${r.toFixed(1)}).` : `Ne, sestava je vyvážená (poměr výkonu grafiky a procesoru ${r.toFixed(1)}).`] }]; }
-  if (has('kompatib', 'sedi', 'funguje', 'zdroj') && !cat || has('kompatib', 'funguje')) { const r = check(o); return [{ lines: r.map(x => `${x.l === 'ok' ? 'V pořádku' : x.l === 'warn' ? 'Pozor' : 'Problém'}: ${x.t}`) }]; }
-  if (cat) return [why(cat, o) || { lines: [`V sestavě zatím chybí ${LBL[cat].toLowerCase()}.`] }];
-  return CATS.map(([c]) => why(c, o)).filter(Boolean).concat([{ lines: [`Celkem ${fmt(Object.values(o).reduce((a, p) => a + pr(p), 0))}. ${check(o).some(r => r.l === 'bad') ? 'Pozor, sestava má konflikty.' : 'Všechny díly jsou kompatibilní.'} Zeptej se na cokoli dalšího.`] }]);
+// ---- rozpoznání záměru ----
+const UNKNOWN = [{ lines: ['S touto žádostí neumím pomoci.', 'Umím vysvětlit díly ve tvé sestavě, porovnat ceny a výkon, zkontrolovat kompatibilitu a navrhnout sestavu s nejlepším poměrem cena/výkon. Zkus třeba „nejlepší sestava za 30 000 Kč“.'] }];
+const EMPTY = [{ lines: ['Sestava je zatím prázdná. Vyber díly nebo načti hotovou sestavu a hned ti vysvětlím, proč v ní jsou. Návrh sestavy podle rozpočtu ti ale udělám i teď, stačí napsat třeba „nejlepší sestava za 30 000 Kč“.'] }];
+const USE = { gaming: 'hraní', work: 'práci a tvorbu', office: 'kancelář' };
+
+// Rozpočet z textu. Číslo bere jen s „k / tis / Kč“, se slovy „do / za / rozpočet…“ nebo když má aspoň 5 číslic, aby „RTX 5070“ nebyl rozpočet.
+export const parseBudget = t => {
+  const re = /(\d{1,3}(?:[ .\u00a0]\d{3})+|\d+)(?:,(\d))?\s*(k(?![a-z])|tis\w*|kc|czk)?/g; let m;
+  while ((m = re.exec(t))) {
+    let n = parseFloat(m[1].replace(/[ .\u00a0]/g, '') + (m[2] ? '.' + m[2] : '')); const suf = m[3] || '';
+    const cue = /(do|za|rozpocet|max|okolo|cca|kolem|mam)\s*$/.test(t.slice(Math.max(0, m.index - 14), m.index));
+    if (/^(k$|tis)/.test(suf) || (cue && n < 1000)) n *= 1000;
+    if ((suf || cue || n >= 10000) && n >= 5000 && n <= 400000) return Math.round(n);
+  }
+  return 0;
+};
+const useOf = t => (/kancel|office|skol|ucebn/.test(t) ? 'office' : /prac|tvor|strih|render|video|work|3d|program/.test(t) ? 'work' : 'gaming');
+const brandOf = t => (/intel/.test(t) ? 'Intel' : /amd|ryzen/.test(t) ? 'AMD' : '');
+const ordered = o => CATS.map(([c]) => o[c]).filter(Boolean);
+const buildMsg = (lines, o) => ({ lines, build: { ids: ordered(o).map(p => p.id), tot: totalOf(o) } });
+const verified = o => { const l = ordered(o); return `Ověřenou cenu má ${l.filter(p => p.v).length} z ${l.length} dílů, ostatní ceny jsou odhad.`; };
+const METHOD = 'Počítám takto: vezmu všechny kompatibilní sestavy v rozpočtu, nechám ty s aspoň 85 % výkonu nejrychlejší z nich a z nich vyberu nejvyšší výkon na korunu. Karty s méně než 10 GB VRAM mírně penalizuji.';
+
+function valueReply(budget, use, brand) {
+  const r = bestValue(budget, use, brand), br = brand ? `, ${brand}` : '';
+  if (r.none) return [{ lines: [`Za ${fmt(budget)}${br} neumím sestavit kompatibilní PC.${isFinite(r.min) ? ` Nejlevnější možná sestava v katalogu stojí asi ${fmt(r.min)}.` : ''}`] }];
+  const o = r.pick.o, tot = totalOf(o), t = r.top.o, head = `Nejlepší poměr cena/výkon do ${fmt(budget)} pro ${USE[use]}${br}:`, why = [];
+  if (use === 'gaming') {
+    why.push(`Odhad ${r.fps} FPS v průměru (9 her, 1080p, vysoké), tedy ${((r.fps / tot) * 1000).toFixed(1)} FPS na 1 000 Kč. Celkem ${fmt(tot)}, z rozpočtu zbývá ${fmt(budget - tot)}.`);
+    why.push(r.same ? 'Je to zároveň nejrychlejší kompatibilní sestava v tomto rozpočtu, víc výkonu za tuhle částku nenajdu.' : `Nejrychlejší sestava v rozpočtu (${dn(t.cpu)} + ${dn(t.gpu)}, ${fmt(r.top.tot)}) dá jen ${Math.max(0, Math.round((r.topFps / r.fps - 1) * 100))} % FPS navíc za ${fmt(r.top.tot - tot)} víc, proto ji jako nejlepší hodnotu nedoporučuji.`);
+    why.push(METHOD);
+  } else if (use === 'work') why.push(`Celkem ${fmt(tot)}. Výkon pro práci hodnotím podle jader a vláken procesoru a výkonu grafiky.`, METHOD);
+  else why.push(`Celkem ${fmt(tot)}. Na kancelář stačí nejlevnější kompatibilní sestava s grafikou v procesoru, 16 GB paměti a SSD.`);
+  why.push(verified(o), 'FPS jsou modelový odhad, ne měření. Před nákupem ověř ceny u obchodu.');
+  return [buildMsg([head], o), { lines: why }];
+}
+function evaluateCurrent(o) {
+  const cur = totalOf(o), curFps = avgFps(o), r = bestValue(cur, 'gaming');
+  if (r.none) return [{ lines: ['Pro tuhle částku nenacházím srovnatelnou sestavu, nemám s čím poměr porovnat.'] }];
+  const curV = (curFps / cur) * 1000, bestV = (r.fps / totalOf(r.pick.o)) * 1000, gain = Math.round((bestV / curV - 1) * 100);
+  const head = `Tvoje sestava: ${curFps} FPS za ${fmt(cur)}, tedy ${curV.toFixed(1)} FPS na 1 000 Kč (odhad, 9 her, 1080p, vysoké).`;
+  if (gain < 8) return [{ lines: [head, `To je pro tuhle cenu mezi nejvýhodnějšími sestavami, které katalog zvládne (nejlepší nalezená je jen o ${Math.max(0, gain)} % výhodnější).`, 'FPS jsou modelový odhad, ne měření.'] }];
+  const p = r.pick.o;
+  return [{ lines: [head, `Za stejné peníze to jde líp. Tahle sestava dává ${r.fps} FPS za ${fmt(totalOf(p))}, tedy ${bestV.toFixed(1)} FPS na 1 000 Kč (asi o ${gain} % víc):`] }, buildMsg([], p), { lines: [METHOD, verified(p)] }];
 }
 
-const CHIPS = ['Vysvětli celou sestavu', 'Proč tenhle procesor?', 'Proč tahle grafika?', 'Stačí zdroj?', 'Co ve hrách?', 'Co vylepšit za 5 000 Kč?', 'Kde ušetřit?', 'Brzdí něco grafiku?'];
+export function answer(q, sel) {
+  const o = objs(sel), t = norm(q), n = Object.keys(o).length, has = (...k) => k.some(x => new RegExp('\\b' + x).test(t)); // shoda od začátku slova: „hra“ nesmí chytit „vyhraje“
+  if (/^(ahoj|cau|nazdar|dobry den|cus|zdravim)\b/.test(t)) return [{ lines: ['Ahoj! Napiš rozpočet a k čemu PC chceš, třeba „nejlepší sestava za 30 000 Kč“, nebo se zeptej na díly své sestavy.'] }];
+  if (/^(dik|dekuj)/.test(t)) return [{ lines: ['Rádo se stalo. Zeptej se na cokoli dalšího.'] }];
+  const map = [['cpu', ['procesor', 'cpu']], ['gpu', ['grafik', 'gpu', 'karta', 'karty']], ['ram', ['ram', 'pamet']], ['mb', ['desk', 'chipset', 'socket']], ['psu', ['zdroj', 'napaj']], ['case', ['skrin', 'case']], ['ssd', ['ssd', 'disk', 'uloz']]];
+  const cat = map.find(([, k]) => has(...k))?.[0], budget = parseBudget(t);
+  if (has('vylepsit', 'upgrade', 'pridat', 'zlepsit', 'prihodit')) { if (!n) return EMPTY; const b = parseInt((t.replace(/\s/g, '').match(/(\d{3,6})/) || [])[1] || '5000'); const u = upgrades(o, b); return [{ lines: u.length ? [`S příplatkem do ${fmt(b)} se nejvíc vyplatí:`, ...u] : [`S příplatkem do ${fmt(b)} už nenacházím kompatibilní zlepšení, které by se vyplatilo.`] }]; }
+  if (has('usetrit', 'snizit', 'ubrat') || (has('levnej', 'levne') && !budget)) { if (!n) return EMPTY; const s = savings(o); return [{ lines: s.length ? [`Kde jde ušetřit bez větší újmy (celkem až ${fmt(s.reduce((a, x) => a + x.save, 0))}):`, ...s.slice(0, 4).map(x => x.t)] : ['Sestava je už skoro nejlevnější možná: levnější kompatibilní díly se stejným výkonem v katalogu nemám.'] }]; }
+  const buildWords = has('sestav', 'pc', 'pocitac', 'gaming', 'hry', 'hrani', 'hrat', 'kancel', 'praci', 'tvorb', 'rozpocet', 'poradit', 'doporuc', 'navrh', 'vyplati', 'pomer', 'vykon', 'nejlepsi', 'levn');
+  const valueQ = has('pomer', 'cena vykon', 'cena/vykon', 'vyplati', 'vyhodn', 'nejlepsi sestav', 'nejlepsi pc', 'doporuc sestav', 'navrhni', 'co koupit', 'jaky pc', 'jaka sestava', 'sestav mi');
+  if (budget && buildWords) return valueReply(budget, useOf(t), brandOf(t));
+  if (valueQ) return n && o.cpu && o.gpu ? evaluateCurrent(o) : [{ lines: ['Napiš rozpočet a k čemu PC chceš, třeba „nejlepší poměr cena/výkon za 30 000 Kč, gaming“, a navrhnu sestavu. Nebo vyber procesor a grafiku a vyhodnotím tu svou.'] }];
+  if (has('hry', 'hra', 'fps', 'hrat', 'cyberpunk')) { if (!n) return EMPTY; if (!o.gpu || !o.cpu) return [{ lines: ['Na odhad FPS potřebuji v sestavě procesor i grafiku.'] }]; return [{ lines: ['Odhad FPS na vysoké detaily (1080p / 1440p):', ...[0, 1, 4, 7].map(i => `${GAMES[i][0]}: ${fpsAt(o.gpu, o.cpu, i, 'FHD', 2)} / ${fpsAt(o.gpu, o.cpu, i, 'QHD', 2)} FPS`), 'Jde o odhad, ne o naměřená data.'] }]; }
+  if (has('brzd', 'bottleneck', 'vyvazen')) { if (!n) return EMPTY; if (!o.gpu || !o.cpu) return [{ lines: ['Potřebuji v sestavě procesor i grafiku.'] }]; const r = o.gpu.sc / o.cpu.sc; return [{ lines: [r > 2.1 ? `Ano, procesor ${dn(o.cpu)} může brzdit grafiku ${dn(o.gpu)} (poměr ${r.toFixed(1)}, ideál je 0,5 až 2).` : r < 0.42 ? `Opačně: procesor je pro grafiku předimenzovaný (poměr ${r.toFixed(1)}).` : `Ne, sestava je vyvážená (poměr výkonu grafiky a procesoru ${r.toFixed(1)}).`] }]; }
+  if (has('kompatib', 'funguje')) { if (!n) return EMPTY; return [{ lines: check(o).map(x => `${x.l === 'ok' ? 'V pořádku' : x.l === 'warn' ? 'Pozor' : 'Problém'}: ${x.t}`) }]; }
+  if (cat) { if (!n) return EMPTY; return [why(cat, o) || { lines: [`V sestavě zatím chybí ${LBL[cat].toLowerCase()}.`] }]; }
+  if (has('vysvetli', 'celou', 'cela sestav', 'shrn', 'popis sestav', 'proc tyto', 'proc tyhle')) { if (!n) return EMPTY; return CATS.map(([c]) => why(c, o)).filter(Boolean).concat([{ lines: [`Celkem ${fmt(Object.values(o).reduce((a, p) => a + pr(p), 0))}. ${check(o).some(r => r.l === 'bad') ? 'Pozor, sestava má konflikty.' : 'Všechny díly jsou kompatibilní.'} Zeptej se na cokoli dalšího.`] }]); }
+  return UNKNOWN;
+}
+
+const CHIPS = [['Nejlepší sestava za 30 000 Kč', 0], ['Je moje sestava výhodná?', 1], ['Vysvětli celou sestavu', 1], ['Proč tenhle procesor?', 1], ['Proč tahle grafika?', 1], ['Stačí zdroj?', 1], ['Co ve hrách?', 1], ['Co vylepšit za 5 000 Kč?', 1], ['Kde ušetřit?', 1], ['Brzdí něco grafiku?', 1]];
 export function Assistant({ sel, auto }) {
   const [msgs, setMsgs] = useState([]), [busy, setBusy] = useState(false), [txt, setTxt] = useState('');
   const ran = useRef(false), box = useRef(null), timers = useRef([]), ids = Object.values(sel).join(','), n = Object.keys(sel).length;
@@ -103,26 +155,32 @@ export function Assistant({ sel, auto }) {
   useEffect(() => {
     clear(); setBusy(false);
     const total = Object.values(sel).reduce((a, id) => a + pr(BY[id]), 0);
-    setMsgs([{ who: 'bot', lines: n ? [`Načetl jsem tvou sestavu: ${n} dílů za ${fmt(total)}. Zeptej se, nebo klikni na otázku níž.`] : ['Ahoj, jsem asistent sestavy. Vyber díly vlevo nebo načti hotovou sestavu a vysvětlím ti, proč jsou v ní zrovna ty, které jsou.'] }]);
+    setMsgs([{ who: 'bot', lines: n ? [`Načetl jsem tvou sestavu: ${n} dílů za ${fmt(total)}. Zeptej se, nebo klikni na otázku níž.`] : ['Ahoj, jsem asistent sestavy. Napiš rozpočet, třeba „nejlepší sestava za 30 000 Kč“, nebo vyber díly a vysvětlím ti, proč jsou v sestavě právě ty.'] }]);
     if (auto && n && !ran.current) { ran.current = true; setMsgs(m => [...m, { who: 'me', lines: ['Vysvětli celou sestavu'] }]); reply(answer('Vysvětli celou sestavu', sel)); }
     return clear;
   }, [ids]);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [msgs, busy]);
   return (
-    <section className="card assist" aria-label="Asistent sestavy">
-      <header><h2>Asistent sestavy</h2><small>Vysvětlí, proč jsou v sestavě právě tyto díly. Odpovídá z dat katalogu a aktuálních cen.</small></header>
+    <section className="card assist" aria-label="Asistent sestavy (beta)">
+      <header><h2>Asistent sestavy <span className="beta">beta</span></h2><small>Je ve velmi rané beta verzi a zatím dost syrový. Odpovídá jen na otázky o sestavě, cenách, výkonu a kompatibilitě, a umí navrhnout sestavu s nejlepším poměrem cena/výkon. Odpovídá z dat katalogu, FPS jsou odhad.</small></header>
       <div className="chat" ref={box} aria-live="polite">
         {msgs.map((m, i) => (
           <div key={i} className={`msg ${m.who}`}>
             {m.part && <b className="mhead" data-part={m.part}>{LBL[m.cat]}: {dn(BY[m.part])}</b>}
             {m.lines.map((l, j) => <p key={j}>{l}</p>)}
+            {m.build && (
+              <>
+                <ul className="abuild">{m.build.ids.map(id => <li key={id} data-part={id}><span>{LBL[BY[id].cat]}</span><b>{dn(BY[id])}</b><em>{fmt(pr(BY[id]))}</em></li>)}</ul>
+                <p className="abt">Celkem <b>{fmt(m.build.tot)}</b> · <a href={`#/builder?b=${m.build.ids.join(',')}`}>Otevřít ve Stavitelu</a></p>
+              </>
+            )}
           </div>
         ))}
         {busy && <div className="msg bot typing" aria-label="Asistent píše"><i /><i /><i /></div>}
       </div>
-      <div className="chips">{CHIPS.map(c => <button key={c} disabled={!n} onClick={() => ask(c)}>{c}</button>)}</div>
+      <div className="chips">{CHIPS.map(([c, needs]) => <button key={c} disabled={needs && !n} onClick={() => ask(c)}>{c}</button>)}</div>
       <form className="ask" onSubmit={e => { e.preventDefault(); ask(txt); }}>
-        <input value={txt} onChange={e => setTxt(e.target.value)} placeholder="Zeptej se třeba: proč tahle grafika?" aria-label="Otázka pro asistenta" /><button className="btn" disabled={!n}>Odeslat</button>
+        <input value={txt} onChange={e => setTxt(e.target.value)} placeholder="Zeptej se třeba: nejlepší sestava za 30 000 Kč" aria-label="Otázka pro asistenta" maxLength={200} /><button className="btn" disabled={!txt.trim()}>Odeslat</button>
       </form>
     </section>
   );

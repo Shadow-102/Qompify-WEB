@@ -1,6 +1,6 @@
 # QOMPIFY — PROJECT BRIEF AND STANDING INSTRUCTIONS FOR AI
 
-> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **31. 10. 2026, package version 1.4.1, zip release v10**.
+> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **2. 11. 2026, package version 1.5.0, zip release v11**.
 
 ---
 
@@ -41,7 +41,7 @@ You are the **lead engineer and product partner** of Qompify, a Czech PC-buildin
 | Stack | React 18 (client only), esbuild bundle, plain CSS, no backend, no router lib |
 | Output | Prebuilt, committed `docs/app.js` + `docs/app.css`; root `index.html` loads `./docs/*` |
 | Persistence | Browser `localStorage` only (saved builds, price alerts) |
-| Size | 101 parts (24 CPU, 17 GPU, 13 RAM, 16 boards, 9 PSU, 9 cases, 13 SSD), 17 monitors, 9 games, 5 shops, 8 tabs, 2 articles |
+| Size | 101 parts (24 CPU, 17 GPU, 13 RAM, 16 boards, 9 PSU, 9 cases, 13 SSD), 17 monitors, 9 games, 5 shops, 9 tabs (incl. O nás) + 6 legal pages, 2 articles |
 | Languages | UI Czech; code and comments mostly Czech/English mixed |
 
 **One-sentence pitch:** *Pick parts, Qompify checks socket, memory, PSU and clearance live, estimates performance, finds the lowest Czech price, explains why each part was chosen, and exports the build as a PDF.*
@@ -106,7 +106,7 @@ You are the **lead engineer and product partner** of Qompify, a Czech PC-buildin
  ├─ React tree
  │   App (hash router, global state: sel, saved, alerts, cmp tray, toast)
  │    ├─ nav + banner (price-alert hits) + hint
- │    ├─ page:  Builder | Optimizer | ComparePage | Benchmarks | Tiers | Catalog | Articles | Community
+ │    ├─ page:  Builder | Optimizer | ComparePage | Benchmarks | Tiers | Catalog | Articles | Community | InfoPage (O nás + legal)
  │    ├─ Compare modal (detail/compare of 1–3 parts) + compare tray
  │    ├─ HoverLayer (global delegated hover/focus cards via [data-part])
  │    └─ Toast
@@ -163,7 +163,9 @@ qompify/
     ├─ extra.jsx      (~420)  PriceChart, CompareTable, Compare (modal), ComparePage, PdfBtn, DealsBar, HoverLayer, Optimizer, Articles (MonitorArticle, PartsArticle + calculators + glossaries), Offers, Badge, Head, AlertBox
     ├─ data.js        (~270)  THE DATABASE + pure logic: PARTS, SPEC, MONITORS, RETAILERS, VERIFIED, offers/best/history/deals, check/power/rec, GAMES/fpsAt, optimize, TIERS, SEEDS
     ├─ bench.jsx      (~50)   Benchmarks tab (resolution + graphics level via JellyRadio, GPU ranking, per-game sensitivity table)
-    ├─ assistant.jsx  (~130)  Build assistant: why(), upgrades(), savings(), answer(), <Assistant/>
+    ├─ assistant.jsx  (~170)  Build assistant: intent routing in answer() (unknown → "S touto žádostí neumím pomoci"), parseBudget, why(), upgrades(), savings(), valueReply(), evaluateCurrent(), <Assistant/> (beta header)
+    ├─ value.js       (~40)   bestValue(budget,use,brand): best price/performance (≥85 % of top perf, max perf per Kč), avgFps, totalOf. Pure, testable in Node.
+    ├─ legal.jsx/.css         O nás + legal pages (routes onas, ochrana-udaju, podminky, vraceni, cookies, moje-data, provozovatel), CookieNotice, LegalLinks, LEGAL config (owner must fill name/IČO/address/e-mail). Classes prefixed qlg-.
     ├─ pdf.js         (~80)   downloadBuildPdf(title, ids): canvas A4 → JPEG → hand-written PDF with link annotations
     ├─ spring.js      (~15)   runSpring() physics animator, uiSpring(bounce), reduced()
     ├─ BellToggle.jsx/.css    Dependency-free port of React Bits BellToggle (price alert button)
@@ -250,7 +252,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 | `#/sestavy` | Sestavy | 4 ready builds with 9-game FPS meters and FPS per 1 000 Kč; open, save, PDF, "Proč tyto díly?" |
 | `#/katalog` | Katalog | 101 parts; filters: category, search, max price (cap 140 000 Kč so the RTX 5090 shows), stock only, VRAM, TDP, PCIe; per-part Detail / Porovnat / Ceny |
 | `#/clanky` | Články | Article list; article opens **only after click** (`?a=monitory` or `?a=parametry`), "← Všechny články" back link |
-| `#/komunita` | Komunita | Saved builds (delete, PDF, copy link), watched prices (alerts), seeded community builds with local likes. **Only "Kopírovat odkaz" + PDF sharing; Reddit/Discord/TikTok were removed on request** |
+| `#/onas` | O nás | Goal of the web, beta notice, how prices/FPS are produced (verified vs estimate vs simulated). Legal pages share the same layout (`INFO` in legal.jsx), linked from the footer |
+| `#/komunita` | Komunita | Saved builds (delete, PDF, copy link), watched prices (alerts), seeded community builds with local likes. **Only "Kopírovat odkaz" + PDF sharing; Reddit/Discord/TikTok were removed on request.** Seed builds are labelled "Ukázkové" (no fake authors/likes, since v11) |
 
 **Cross-cutting features**
 
@@ -316,6 +319,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 9. **v9 — fixes + assistant.** Top bar wraps (Komunita was clipped ≤1024px), readability (darker bottom, dark prose panels), removed the ice-shard SVG, wide Compare tab with monitors, **build assistant**.
 10. **v10 — documentation.** Added this `AI_BRIEF.md` so any AI session knows the project, the file structure, the process and the deploy routine; softened one unverifiable deal note.
 
+11. **v11 — assistant + legal.** Best price/performance logic (`value.js`), "can't help" fallback, beta header, new O nás tab and legal pages/cookie notice/data deletion (`legal.jsx`), honesty fixes (fake community authors/likes removed, simulated deals labelled "Simulace", chart and offer notes, footer no longer claims commissions).
+
 ---
 
 ## 11. BUG / LESSON LOG (do not repeat these)
@@ -338,6 +343,7 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 | 14 | esbuild `safari14` target risk | known destructuring transform bug | use `es2020` |
 | 15 | Hover card "didn't hide" in tests | slow software-rendered browser | wait on conditions, not fixed sleeps |
 | 16 | Pinned verified price mismatch | shop noise vs base price | `VERIFIED` pins the shop price and clamps others |
+| 18 | Assistant read "hra" inside "vyhraje"; "30 000 Kč" became millions | substring matching; `kc` matched as thousands suffix | `has()` matches from word start (`\\bkey`); suffix check `^(k$|tis)`; budget needs a cue (k/tis/Kč, do/za…) or ≥ 5 digits so "RTX 5070" is not a budget |
 | 17 | White text unreadable | fixed bright gradient bottom | dark panels for prose, deeper bottom colour, contrast ≥ 7 |
 
 ---
@@ -363,7 +369,7 @@ Test `data.js` logic in Node by bundling a small `.mjs` that imports it with esb
 
 **Regression checklist (run after every change)**
 
-1. App renders with **zero page errors** on all 8 routes (desktop 1280 and phone 390).
+1. App renders with **zero page errors** on all 9 routes + the 6 legal pages (`#/ochrana-udaju`, `podminky`, `vraceni`, `cookies`, `moje-data`, `provozovatel`) (desktop 1280 and phone 390).
 2. Top bar: no tab clipped at 1440/1280/1100/1024/900/768/390; Komunita badge centred.
 3. Builder: pick part → slot fills, total updates, badges correct; incompatible parts flagged; PSU weak case; bottleneck warning (i3-12100F + RTX 5080).
 4. Catalog: 101 parts, filters, stock filter, price cap shows RTX 5090.
