@@ -48,3 +48,10 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - **Poctivost dat:** ukázkové sestavy v Komunitě už nemají vymyšlené autory ani počty srdíček, simulované „slevy“ v nabídkách jsou označené „Simulace“, grafy historie a ceny obchodů mají poznámku o simulaci, z patičky zmizelo tvrzení o provizi (žádné partnerské odkazy zatím nemáme).
 - `optimize()` navíc vrací `all` (všechny kompatibilní kombinace v rozpočtu). Ostatní chování beze změny.
 
+## Verze 2.0.0
+- **Nový design:** minimalistický a prémiový, bez pozadí s ASCII a bez gradientů. Keramicky bílá, grafitová a jeden modrý akcent, vlasové linky místo karet, Manrope. Jediný výrazný prvek je tmavý souhrn sestavy s plynule se přetáčející cenou (odometr).
+- **Plynulé animace:** pohybují se jen `transform` a `opacity`, pryč jsou blur filtry, scroll-reveal, lesk na tlačítkách a posuny karet. Cena se už nepřekresluje Reactem každý snímek. Posuvné podtržení záložek. Respektuje „omezit pohyb“ v systému.
+- **Písmo Manrope přímo s webem:** odkazy na Google Fonts jsou pryč z obou `index.html`. Jednorázově spusť `npm run fonts` (stáhne `docs/fonts/*.woff2` a vytvoří `docs/fonts.css`) a výsledek commitni. Do té doby web použije systémové písmo.
+- **Přihlášení (zkušební):** uživatel `test`, heslo `test`. Ověřuje se v prohlížeči, takže jde jen o hradlo v rozhraní, ne o zabezpečení. Právní stránky zůstávají veřejné. Odhlášení je v horní liště.
+- Právní texty aktualizovány (přihlášení, klíč `qompify.session.v1`, písmo bez třetích stran).
+

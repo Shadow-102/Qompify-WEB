@@ -1,11 +1,12 @@
 {
   "name": "qompify",
   "private": true,
-  "version": "1.5.0",
+  "version": "2.0.0",
   "scripts": {
     "build": "esbuild src/main.jsx --bundle --minify --target=es2020 --outfile=docs/app.js --loader:.png=dataurl --loader:.ttf=dataurl --jsx=automatic --define:process.env.NODE_ENV='\"production\"'",
     "dev": "esbuild src/main.jsx --bundle --outfile=docs/app.js --loader:.png=dataurl --loader:.ttf=dataurl --jsx=automatic --watch",
-    "prices": "node scripts/update-prices.mjs"
+    "prices": "node scripts/update-prices.mjs",
+    "fonts": "node scripts/get-fonts.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

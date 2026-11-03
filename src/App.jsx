@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import GradientASCII from './GradientASCII.jsx';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { CATS, PARTS, BY, LOOK, dn, TIERS, SEEDS, GAMES, fpsEff, offers, best, fmt, spec, check, power, rec } from './data.js';
 import logo from './assets/logo.png';
 import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles, HoverLayer, PdfBtn } from './extra.jsx';
 import { Benchmarks } from './bench.jsx';
 import { Assistant } from './assistant.jsx';
-import { InfoPage, INFO, CookieNotice, LegalLinks } from './legal.jsx';
+import { InfoPage, INFO, LegalLinks } from './legal.jsx';
+import { Price } from './price.jsx';
+import { useAuth, signOut } from './auth.js';
 
 const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita'], ['onas', 'O nás']];
 const AKEY = 'qompify.alerts.v1';
@@ -24,17 +25,6 @@ function useRoute() {
   useEffect(() => { const f = () => setR(read()); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f); }, []);
   return r;
 }
-function useTween(v) {
-  const [x, setX] = useState(v), r = useRef(v);
-  useEffect(() => {
-    const a = r.current, t0 = performance.now(); let f;
-    const step = t => { const k = Math.min(1, (t - t0) / 500); r.current = a + (v - a) * (1 - Math.pow(1 - k, 3)); setX(r.current); if (k < 1) f = requestAnimationFrame(step); };
-    f = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(f);
-  }, [v]);
-  return x;
-}
-
 function Share({ ids, title, copy }) {
   if (!ids.length) return null;
   const url = linkOf(ids);
@@ -84,7 +74,7 @@ function Sheet({ cat, sel, onClose, onPick, ui }) {
 
 function Builder({ sel, setSel, add, save, copy, ui, ask }) {
   const [pick, setPick] = useState(null), [focus, setFocus] = useState(null), [name, setName] = useState('');
-  const o = objs(sel), res = check(o), draw = power(o), tot = total(sel), n = useTween(tot), ids = Object.values(sel);
+  const o = objs(sel), res = check(o), draw = power(o), tot = total(sel), ids = Object.values(sel);
   const fp = BY[focus] || BY[ids[ids.length - 1]];
   const cap = o.psu ? o.psu.w : rec(draw), pct = draw ? Math.min(100, (draw / cap) * 100) : 0;
   const worst = res.some(r => r.l === 'bad') ? 'bad' : res.some(r => r.l === 'warn') ? 'warn' : res[0].l === 'idle' ? 'idle' : 'ok';
@@ -118,7 +108,7 @@ function Builder({ sel, setSel, add, save, copy, ui, ask }) {
         <aside className="side">
           <section className={`card sum ${worst}`}>
             <p className="muted">Nejnižší ceny celkem</p>
-            <div className="total">{fmt(n)}</div>
+            <div className="total"><Price value={tot} /></div>
             <ul className="badges">{res.map((r, i) => <Badge key={i} {...r} />)}</ul>
             <div className="meter" aria-label="Odhad příkonu">
               <div><span>Odhadovaný příkon {draw} W</span><span>{o.psu ? `zdroj ${o.psu.w} W` : `doporučeno ${cap} W`}</span></div>
@@ -251,6 +241,25 @@ function Community({ saved, persist, go, copy, alerts, setAlert }) {
   );
 }
 
+function Tabs({ page, badge }) {
+  const ref = useRef(null);
+  const place = () => {
+    const nav = ref.current, a = nav && nav.querySelector('a[aria-current]');
+    if (!nav) return;
+    if (!a) { nav.style.setProperty('--o', 0); return; }
+    nav.style.setProperty('--x', a.offsetLeft + 'px'); nav.style.setProperty('--y', a.offsetTop + a.offsetHeight + 'px'); nav.style.setProperty('--w', a.offsetWidth + 'px'); nav.style.setProperty('--o', 1);
+    if (!nav.dataset.ready) requestAnimationFrame(() => requestAnimationFrame(() => { nav.dataset.ready = '1'; })); // první umístění bez animace, další plynule
+  };
+  useLayoutEffect(place, [page, badge]);
+  useEffect(() => { addEventListener('resize', place); document.fonts?.ready.then(place); return () => removeEventListener('resize', place); }, []);
+  return (
+    <nav ref={ref} aria-label="Hlavní navigace">
+      {NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page) && !INFO.includes(page))) ? 'page' : undefined}>{l}{k === 'komunita' && badge ? <span className="nb">{badge}</span> : null}</a>)}
+      <i className="ink" aria-hidden="true" />
+    </nav>
+  );
+}
+
 function Footer() {
   return (
     <footer className="foot">
@@ -297,25 +306,20 @@ export default function App() {
     };
     addEventListener('keydown', f); return () => removeEventListener('keydown', f);
   }, [page]);
-  useEffect(() => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
-    const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -6% 0px' });
-    const t = setTimeout(() => document.querySelectorAll('.tier,.art,.build,.prose,.benchc,.cpage').forEach(el => { if (!el.classList.contains('rv')) { el.classList.add('rv'); io.observe(el); } }), 30);
-    return () => { clearTimeout(t); io.disconnect(); };
-  }, [page, q.toString()]);
-  const [cmp, setCmp] = useState([]), [view, setView] = useState(null);
+  const user = useAuth(), [cmp, setCmp] = useState([]), [view, setView] = useState(null);
   const toggle = id => setCmp(c => (c.includes(id) ? c.filter(x => x !== id) : c.length && BY[c[0]].cat !== BY[id].cat ? [id] : [...c, id].slice(-3)));
   const ui = { cmp, toggle, show: ids => setView(ids) };
   return (
     <>
-      <div className="bg"><GradientASCII colors={['#3B66F5', '#F3EBDD', '#4A75FF', '#1E3FD8']} shape="horizon" characters=" =+xX0S8#@" lightMode={false} /></div>
       <div className={`app${page === 'porovnat' ? ' wide' : ''}`}>
         <header className="nav">
-          <a className="brand" href="#/builder"><img src={logo} alt="" /><span>Qompify</span></a>
-          <nav>{NAV.map(([k, l]) => <a key={k} href={`#/${k}`} aria-current={(page === k || (k === 'builder' && !NAV.some(n => n[0] === page) && !INFO.includes(page))) ? 'page' : undefined}>{l}{k === 'komunita' && saved.length ? <span className="nb">{saved.length}</span> : null}</a>)}</nav>
+          <div className="navin">
+            <a className="brand" href="#/builder"><img src={logo} alt="" /><span>Qompify</span></a>
+            <Tabs page={page} badge={saved.length} />
+            <button className="who" onClick={signOut} title={`Přihlášen: ${user}`} aria-label={`Odhlásit se (přihlášen ${user})`}>Odhlásit</button>
+          </div>
         </header>
         {hit.length > 0 && <div className="banner" role="status">Cena klesla: {hit.map(([id, al]) => `${dn(LOOK[id])} (${fmt(best(LOOK[id]).price)}, cíl ${fmt(al.target)})`).join(' · ')}</div>}
-        <p className="hint">Tip: šipkami ← a → přepínáš mezi nástroji.</p>
         <main key={page} className="view">
           {INFO.includes(page) ? <InfoPage slug={page} /> : page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles a={q.get('a')} /> : page === 'benchmarky' ? <Benchmarks /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} ask={q.get('ask')} />}
         </main>
@@ -324,7 +328,6 @@ export default function App() {
       {view && <Compare ids={view} sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} onClose={() => setView(null)} />}
       {cmp.length > 0 && !view && <div className="tray"><span>Porovnání: {cmp.map(i => dn(BY[i])).join(' · ')}</span><button className="btn" disabled={cmp.length < 2} onClick={() => setView(cmp)}>Porovnat ({cmp.length})</button><button className="ghost" onClick={() => setCmp([])}>Zrušit</button></div>}
       <HoverLayer />
-      <CookieNotice />
       <div className={`toast${toast ? ' on' : ''}`} role="status">{toast}</div>
     </>
   );

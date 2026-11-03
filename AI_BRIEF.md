@@ -1,6 +1,6 @@
 # QOMPIFY — PROJECT BRIEF AND STANDING INSTRUCTIONS FOR AI
 
-> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **2. 11. 2026, package version 1.5.0, zip release v11**.
+> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **3. 11. 2026, package version 2.0.0, zip release v12**.
 
 ---
 
@@ -22,7 +22,7 @@ You are the **lead engineer and product partner** of Qompify, a Czech PC-buildin
 - **UI language is Czech** with full diacritics (ě š č ř ž ý á í é ů ú ď ť ň). Never use the Theovd font for body text (it has no diacritics).
 - **Never invent prices, sources, dates, benchmarks or deals.** Anchor to a named Czech shop or article with a date, or label it `odhad` (estimate). See §9.
 - **No new heavy dependencies.** The pipeline is plain React 18 + esbuild, no network at build time on the owner's side beyond `npm install`. If a library is not installable in your sandbox, write a dependency-free port (precedent: BellToggle, JellyRadio, §10).
-- **Keep the brand and the glacier look** (§3). Motion only where it answers an action, plus restrained page-level moments.
+- **Keep the v2 design system** (§3): flat ceramic background, graphite + one cobalt accent, hairlines, one bold element (the odometer total). Motion only where it answers an action.
 - **Do not break existing features.** Run the regression checklist (§12) after every change.
 - **Reply in the language the owner writes in (English)**, UI strings in Czech.
 
@@ -67,33 +67,35 @@ You are the **lead engineer and product partner** of Qompify, a Czech PC-buildin
 
 ---
 
-## 3. BRAND AND DESIGN SYSTEM
+## 3. BRAND AND DESIGN SYSTEM (v2, "ceramic / graphite / cobalt")
 
-**Palette**
+The v1 glacier look (ASCII-gradient background, sand cards, dark glass) was **retired in v2.0.0** on the owner's request: *"stop using the background, minimalistic but premium"*. Do not bring back the ASCII canvas, gradients behind text, `backdrop-filter`, scroll-reveal, shimmer or hover-lift effects.
+
+**Palette (CSS variables at the top of `styles.css`)**
 
 | Token | Hex | Use |
 |---|---|---|
-| Royal blue (primary accent) | `#3B66F5` | buttons, active states, charts |
-| Bright blue | `#4A75FF` | focus rings, hovers |
-| Deep blue | `#1E3FD8` | button hover |
-| Warm sand | `#F3EBDD` | cards ("paper" surface), light text |
-| Sand 2 | `#E5D9C5` | chips, inactive elements |
-| Ink | `#0b0f19` | text on sand |
-| **Glacier backdrop** | `#06121d` → `#0b2a3d` → `#154560` → `#246a82` | fixed page gradient (top→bottom) |
-| Ice / meltwater | `#cdeef5`, `#9fe0ea`, `#62b6cb` | highlights, hairlines on cards, hover-card accents |
-| Status | ok `#1f8a5b`, warn `#b57a0a`, bad `#c93c3c` | compatibility badges, FPS tones |
+| `--paper` | `#F5F6F8` | page background, flat (cool ceramic white, deliberately not cream) |
+| `--panel` | `#fff` | surfaces that need to be surfaces (cards, sheet, modal) |
+| `--ink` | `#15181F` | text, and the one dark block: the build summary `.card.sum` |
+| `--mu` | `#5A6170` | secondary text (AA on paper) |
+| `--line` / `--line2` | `#E2E5EB` / `#CBD0DA` | hairlines, input borders |
+| `--accent` | `#2447E0` | the only accent: buttons, links, bars, focus |
+| status | ok `#16754F`, warn `#8F5C00`, bad `#B3321F` (+ `-s` soft tints) | badges, FPS tones |
 
-**Background.** `GradientASCII` (own WebGL implementation) draws an animated ASCII horizon with the **mandatory brand palette** `["#3B66F5","#F3EBDD","#4A75FF","#1E3FD8"]`, shape `"horizon"`, characters `" =+xX0S8#@"`, `lightMode=false`, fixed `inset-0 z-0`, non-blocking, mouse scrambles nearby glyphs. The glacier gradient is computed **in the shader** (and duplicated as CSS `body` background fallback). The bottom was deliberately darkened (`#246a82`) so light text stays readable (measured contrast 12:1 on article panels over the brightest backdrop).
+**Typography.** Manrope only (variable 400–800, **self-hosted**, see below), tight display tracking (`-.045em` on hero), tabular numerals everywhere. **Theovd** only for the "Qompify" wordmark and the PDF header. Sizes: hero clamp(2.5rem,5.8vw,4.6rem) / body 15px / small 13px.
 
-**Typography.** **Manrope** (Google Fonts, weights 400–800, supports Czech Latin-Extended) for everything. **Theovd** (`src/assets/theovd.ttf`, inlined as data URL) **only** for the "Qompify" wordmark and the PDF header. Numbers use `font-variant-numeric: tabular-nums`.
+**Structure.** Hairlines and whitespace instead of a wall of identical cards. Radius hierarchy 10px (controls) / 16px (surfaces) / 22px (sheet, modal). Container `min(1120px, 100% - 48px)`, 1480px on Compare. Sticky top bar with text tabs and **one sliding underline** (`.ink`, positioned by `Tabs` in App.jsx from `offsetLeft/Top/Width`; tabs wrap on narrow screens, bar is static ≤820px).
 
-**Surfaces.** Sand "paper" cards (radius 22px) on the dark glacier backdrop; dark glass panels (`rgba(6,18,29,.68)` + blur) for text that sits directly on the backdrop (article prose, footer, deals, hover cards, tray). A 3px glacier-gradient hairline tops `.sum, .tier, .build, .art` cards.
+**The one bold element.** `.card.sum` is graphite with a giant **odometer price** (`price.jsx`): each digit is a 0–9 column translated with `transform` (no per-frame React renders). Everything else stays quiet.
 
-**Motion rules.** (a) Answers to actions: spring/ease transitions on toggles, sheets, chips, bars. (b) Scroll reveal for cards (IntersectionObserver, skipped under `prefers-reduced-motion`). (c) Hover-card fade/scale, deal-card lift, button shimmer. (d) Number tween on total price. No decorative motion beyond that (the earlier "ice shard" hero SVG was **removed** on the owner's request).
+**Motion rules.** Only answers to actions, only `transform`/`opacity` (width only on tiny contained bars): tab underline slide, price roll, sheet/modal/tray/toast, badge/chat pop, 160 ms press feedback. Easing tokens `--ease` (out-expo-ish) and `--ease-io`. No scroll-reveal, no shimmer, no hover lift/shadow animation, no `backdrop-filter`. `content-visibility:auto` on long lists. `prefers-reduced-motion` disables all of it. Measured (headless, no GPU): median frame 217 ms → 16.7 ms vs v1.
 
-**Accessibility.** Focus-visible rings, `role="radiogroup"` for jelly chips, `aria-pressed` on the bell, `aria-live` chat, tooltips via `role="tooltip"`, reduced-motion media query kills animations.
+**Accessibility.** Focus-visible rings (inputs get a soft accent ring), `role="img"` + `aria-label` on the odometer, `aria-live` chat, `aria-invalid`/`role="alert"` on login errors.
 
-**Layout.** Max width 1240px (`.app`), 1560px on the Compare tab (`.app.wide`). Sticky pill navigation that **wraps instead of clipping**. Breakpoints roughly 1000 / 900 / 820 / 700 / 600 / 560px.
+**Fonts.** `docs/fonts.css` declares Manrope from `docs/fonts/manrope-latin(-ext).woff2`. The woff2 files are created by `npm run fonts` (`scripts/get-fonts.mjs`, needs internet, run once, commit the result). Until then the site falls back to the system font. **Never add Google Fonts links back** (GDPR: leaks visitor IPs).
+
+**Login (test gate).** `src/auth.js` + `src/auth.jsx`: username `test`, password `test`, session key `qompify.session.v1` (30 days; localStorage if "Zůstat přihlášen", else sessionStorage). The hash lives in the bundle, so **this is a UI gate, not security** (GitHub Pages has no server). Legal pages stay public. Real accounts need a backend (Supabase / Firebase / Cloudflare Access).
 
 ---
 
@@ -159,7 +161,7 @@ qompify/
 ├─ docs/                      PREBUILT SITE (committed!)  app.js, app.css, index.html, favicon.png, .nojekyll
 └─ src/
     ├─ main.jsx               createRoot(App) + imports styles.css
-    ├─ App.jsx        (~330)  Router, global state, Builder, Sheet (part picker), Tiers, Catalog, Community, Share, Footer, hooks useRoute/useTween, arrow-key nav, scroll reveal, alert banner
+    ├─ App.jsx        (~330)  Router, global state, Builder, Sheet (part picker), Tiers, Catalog, Community, Share, Footer, hook useRoute, Tabs (sliding underline), arrow-key nav, alert banner
     ├─ extra.jsx      (~420)  PriceChart, CompareTable, Compare (modal), ComparePage, PdfBtn, DealsBar, HoverLayer, Optimizer, Articles (MonitorArticle, PartsArticle + calculators + glossaries), Offers, Badge, Head, AlertBox
     ├─ data.js        (~270)  THE DATABASE + pure logic: PARTS, SPEC, MONITORS, RETAILERS, VERIFIED, offers/best/history/deals, check/power/rec, GAMES/fpsAt, optimize, TIERS, SEEDS
     ├─ bench.jsx      (~50)   Benchmarks tab (resolution + graphics level via JellyRadio, GPU ranking, per-game sensitivity table)
@@ -170,15 +172,16 @@ qompify/
     ├─ spring.js      (~15)   runSpring() physics animator, uiSpring(bounce), reduced()
     ├─ BellToggle.jsx/.css    Dependency-free port of React Bits BellToggle (price alert button)
     ├─ JellyRadio.jsx/.css    Dependency-free port of React Bits JellyRadio (resolution/graphics/panel selectors; "Off" item deliberately removed)
-    ├─ GradientASCII.jsx      Own WebGL ASCII-horizon background (official source was not retrievable)
+    ├─ price.jsx      Odometer price (digit columns, transform only)
+    ├─ auth.js / auth.jsx / sha256.js   Test login gate (Gate is the root component in main.jsx), session logic, pure-JS SHA-256
     ├─ prices.json            {"updated":null,"items":{}}  live overlay; items[id]={shops:{Shop:{price,stock}},hist:[[date,price]...]}
-    ├─ styles.css     (~250 lines, dense)  All site CSS, appended in layers (base → components → glacier → fixes). Later rules win; check for class-name clashes (see §11)
+    ├─ styles.css     (~250 lines, dense)  All site CSS, rewritten in v2 (tokens → shell → components → pages → login → reduced-motion). Later rules win; check for class-name clashes (see §11)
     └─ assets/logo.png, theovd.ttf   Logo (transparent PNG cropped from owner's upload), brand font
 ```
 
 **Component/function index**
 
-- `App.jsx`: `useRoute`, `useTween`, `Share`, `Sheet`, `Builder`, `Tiers`, `Catalog`, `Community`, `Footer`, default `App`; helpers `linkOf`, `parse`, `objs`, `total`, `selOf`, `load`.
+- `App.jsx`: `useRoute`, `Tabs`, `Share`, `Sheet`, `Builder`, `Tiers`, `Catalog`, `Community`, `Footer`, default `App`; helpers `linkOf`, `parse`, `objs`, `total`, `selOf`, `load`.
 - `extra.jsx`: `Badge`, `Head`, `Offers`, `PriceChart`, `AlertBox`, `CompareTable`, `Compare`, `ComparePage`, `PdfBtn`, `DealsBar`, `HoverLayer`, `parseAsk`, `Optimizer`, `Glossary`, `Prose`, `PanelPicker`, `PpiCalc`, `MotionDemo`, `MonitorArticle`, `LatencyCalc`, `PsuCalc`, `PartsArticle`, `Articles`; data consts `MON_ROWS`, `MON_GLOSS`, `PART_GLOSS`, `ARTICLES`, `PANELS`, `PAN`, `RESPTS`.
 - `data.js` exports: `CATS, GFX, GAMES, fpsEff, fpsAt, PARTS, SPEC, showVal, perf, dn, BY, RETAILERS, VERIFIED, offers, best, fmt, spec, power, rec, check, TIERS, SEEDS, RES_K, MONITORS, LOOK, history, deals, optimize`.
 
@@ -321,6 +324,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 
 11. **v11 — assistant + legal.** Best price/performance logic (`value.js`), "can't help" fallback, beta header, new O nás tab and legal pages/cookie notice/data deletion (`legal.jsx`), honesty fixes (fake community authors/likes removed, simulated deals labelled "Simulace", chart and offer notes, footer no longer claims commissions).
 
+12. **v12 (2.0.0) — redesign + login + fonts.** Full visual redesign (§3), ASCII background and all blur/reveal/shimmer effects removed, odometer total, sliding tab underline, test login gate, Manrope self-hosting pipeline (`npm run fonts`), legal texts updated for login/session/fonts.
+
 ---
 
 ## 11. BUG / LESSON LOG (do not repeat these)
@@ -344,6 +349,7 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 | 15 | Hover card "didn't hide" in tests | slow software-rendered browser | wait on conditions, not fixed sleeps |
 | 16 | Pinned verified price mismatch | shop noise vs base price | `VERIFIED` pins the shop price and clamps others |
 | 18 | Assistant read "hra" inside "vyhraje"; "30 000 Kč" became millions | substring matching; `kc` matched as thousands suffix | `has()` matches from word start (`\\bkey`); suffix check `^(k$|tis)`; budget needs a cue (k/tis/Kč, do/za…) or ≥ 5 digits so "RTX 5070" is not a budget |
+| 19 | Sticky bar looked like a glitch | 97 %-opaque nav let content ghost through; anchors scrolled under it | solid `--paper` bar + `scroll-padding-top` |
 | 17 | White text unreadable | fixed bright gradient bottom | dark panels for prose, deeper bottom colour, contrast ≥ 7 |
 
 ---
@@ -383,7 +389,7 @@ Test `data.js` logic in Node by bundling a small `.mjs` that imports it with esb
 12. Assistant: greeting, explain-all (7 headers), upgrade, savings, free text, `?ask=1`.
 13. Arrow keys switch tabs but not inside inputs/radiogroups/modals.
 14. `docs/` rebuilt and the root `index.html` + `docs/index.html` both load.
-15. Screenshots reviewed visually (readability on the bright part of the backdrop!).
+15. Screenshots reviewed visually (contrast, nav wrapping, sticky bar not ghosting content).
 
 ---
 
@@ -451,7 +457,7 @@ Disable the bot until feeds exist: `git rm .github/workflows/prices.yml`, commit
 - **Add an article:** add an entry to `ARTICLES`, a component, and a branch in `Articles`. Pattern: `Prose` text → interactive `.card.art` block → text …
 - **Add a game:** push `[name, '1080p, vysoké', k, [low, mid, high=1, ultra]]` onto `GAMES`; tiers/benchmarks/optimizer adapt automatically.
 - **Add hover details:** put `data-part="<id>"` on the element.
-- **Change palette:** CSS variables at the top of `styles.css`, the CSS `body` gradient, the shader stops in `GradientASCII.jsx`, PDF header gradient in `pdf.js`.
+- **Change palette:** CSS variables at the top of `styles.css` (+ `meta theme-color` and the inline `body` colour in both `index.html`), PDF header gradient in `pdf.js` (the PDF still has the v1 glacier header).
 - **New selector UI:** reuse `JellyRadio` (colors used: chip `#E5D9C5`, active `#3B66F5`, text `#0b0f19`, active text `#fff`).
 
 ---
@@ -520,6 +526,6 @@ Stavitel PC = PC builder · Na míru = tailor-made (optimizer) · Porovnat = com
 - "Update all prices from Czech shops again and re-validate the presets."
 - "Turn on live price feeds; explain exactly where I get the feed URLs and what to paste."
 - "The site shows <symptom>. Here is the Terminal output / screenshot." (diagnose from §11 and §13.5)
-- "Redesign <page> keeping the glacier look and the rules in §3."
+- "Redesign <page> keeping the v2 design system and the rules in §3."
 
 *End of brief. Remember: rebuild `docs/`, test, deliver the full zip, show the deploy steps, state limits, suggest next ideas.*
