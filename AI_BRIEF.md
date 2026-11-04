@@ -1,6 +1,6 @@
 # QOMPIFY — PROJECT BRIEF AND STANDING INSTRUCTIONS FOR AI
 
-> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **3. 11. 2026, package version 2.0.0, zip release v12**.
+> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **4. 11. 2026, package version 2.1.0, zip release v13**.
 
 ---
 
@@ -67,35 +67,36 @@ You are the **lead engineer and product partner** of Qompify, a Czech PC-buildin
 
 ---
 
-## 3. BRAND AND DESIGN SYSTEM (v2, "ceramic / graphite / cobalt")
+## 3. BRAND AND DESIGN SYSTEM (v2.1, "ceramic / graphite / cobalt" + circuit board + liquid glass)
 
-The v1 glacier look (ASCII-gradient background, sand cards, dark glass) was **retired in v2.0.0** on the owner's request: *"stop using the background, minimalistic but premium"*. Do not bring back the ASCII canvas, gradients behind text, `backdrop-filter`, scroll-reveal, shimmer or hover-lift effects.
+History: v1 glacier/ASCII look was retired in v2.0 ("minimalistic but premium"). v2.1 added, on the owner's request, a **motherboard-circuit background**, **liquid glass** and livelier motion, while staying minimal. Do not bring back the ASCII canvas or gradients behind text.
 
 **Palette (CSS variables at the top of `styles.css`)**
 
 | Token | Hex | Use |
 |---|---|---|
-| `--paper` | `#F5F6F8` | page background, flat (cool ceramic white, deliberately not cream) |
-| `--panel` | `#fff` | surfaces that need to be surfaces (cards, sheet, modal) |
-| `--ink` | `#15181F` | text, and the one dark block: the build summary `.card.sum` |
+| `--paper` | `#F5F6F8` | page background, flat cool ceramic white (deliberately not cream) |
+| `--ink` | `#15181F` | text and the one dark block: the build summary `.card.sum` |
 | `--mu` | `#5A6170` | secondary text (AA on paper) |
 | `--line` / `--line2` | `#E2E5EB` / `#CBD0DA` | hairlines, input borders |
-| `--accent` | `#2447E0` | the only accent: buttons, links, bars, focus |
-| status | ok `#16754F`, warn `#8F5C00`, bad `#B3321F` (+ `-s` soft tints) | badges, FPS tones |
+| `--accent` | `#2447E0` | the only accent: buttons, links, bars, focus, copper traces |
+| status | ok `#16754F`, warn `#8F5C00`, bad `#B3321F` (+ `-s` tints) | badges, FPS tones |
 
-**Typography.** Manrope only (variable 400–800, **self-hosted**, see below), tight display tracking (`-.045em` on hero), tabular numerals everywhere. **Theovd** only for the "Qompify" wordmark and the PDF header. Sizes: hero clamp(2.5rem,5.8vw,4.6rem) / body 15px / small 13px.
+**Typography.** Manrope only (variable 400–800, **self-hosted**, see Fonts), tight display tracking, tabular numerals. **Theovd** only for the "Qompify" wordmark and the PDF header.
 
-**Structure.** Hairlines and whitespace instead of a wall of identical cards. Radius hierarchy 10px (controls) / 16px (surfaces) / 22px (sheet, modal). Container `min(1120px, 100% - 48px)`, 1480px on Compare. Sticky top bar with text tabs and **one sliding underline** (`.ink`, positioned by `Tabs` in App.jsx from `offsetLeft/Top/Width`; tabs wrap on narrow screens, bar is static ≤820px).
+**Circuit background (`circuit.jsx`).** A deterministic 1600×1000 SVG scene (CPU socket with LGA pads, 4 RAM slots, VRM row, chipset, M.2, PCIe, parallel 45° trace buses via `offsetPoly`, silkscreen labels) drawn at ~8 % opacity, fixed behind everything (`.pcb`, z-index 0; `.app`/`.lg` are z-index 1). On top: 11 **signal pulses** (CSS `transform` keyframes generated from the trace geometry, so they run on the compositor) and a **cursor lens** (`.pcb-lens`: a 380 px masked window that follows the pointer with a lerp and shows the same art in cobalt via `<use href="#pcb-art">`; lens + inner svg get opposite `translate3d` so the art stays registered). Hidden on touch (`hover:none`) and with reduced motion (no pulses).
 
-**The one bold element.** `.card.sum` is graphite with a giant **odometer price** (`price.jsx`): each digit is a 0–9 column translated with `transform` (no per-frame React renders). Everything else stays quiet.
+**Liquid glass.** Real `backdrop-filter` only on a few floating surfaces: `.nav`, `.lgf` (login), `.panel` (sheet), `.modal`, and dark glass on `.tray/.toast/.qlg-cookie/.hcard`. Chromium additionally gets **refraction** (`html.rf`, SVG `feDisplacementMap` filter `#lg-ref` with an edge displacement map) which bends the circuit at the glass edge; Safari/Firefox get the plain frosted blur. Cards use faux glass (translucent white, specular `--rim`, pointer-following sheen via `--mx/--my` set by `usePointerGlow`) with **no** backdrop-filter, because 100 blurred cards in the catalog would be too slow. The active tab is a glass **lens pill** (`.ink`) that slides with an overshoot spring (`--spring`), positioned by `Tabs` from `offsetLeft/Top/Width/Height`.
 
-**Motion rules.** Only answers to actions, only `transform`/`opacity` (width only on tiny contained bars): tab underline slide, price roll, sheet/modal/tray/toast, badge/chat pop, 160 ms press feedback. Easing tokens `--ease` (out-expo-ish) and `--ease-io`. No scroll-reveal, no shimmer, no hover lift/shadow animation, no `backdrop-filter`. `content-visibility:auto` on long lists. `prefers-reduced-motion` disables all of it. Measured (headless, no GPU): median frame 217 ms → 16.7 ms vs v1.
+**Motion.** Hero words rise one by one (`Words`), a circuit **trace mark** draws itself under titles (`Trace`), first three children of `.view` fade-rise (never the big grids), odometer digits roll with a soft overshoot, springs on tray/toast/modal. Only `transform`/`opacity` (width only on tiny contained bars). No scroll-reveal observers. `prefers-reduced-motion` disables it. **Effects switch** (footer, `FxToggle`, key `qompify.fx.v1`) adds `html.lite`, which removes pulses, lens and all backdrop blur; `prefers-reduced-transparency` does the same.
 
-**Accessibility.** Focus-visible rings (inputs get a soft accent ring), `role="img"` + `aria-label` on the odometer, `aria-live` chat, `aria-invalid`/`role="alert"` on login errors.
+**Measured (headless, software rendering, no GPU):** flat v2.0 had 4 frames > 20 ms in a tab-switch + scroll + pointer workload; v2.1 with circuit + glass has about 54 (median still 16.7 ms), mostly backdrop blur and the live background. Real GPUs should be better but that was not measured. Check this again after any new glass/background effect.
 
-**Fonts.** `docs/fonts.css` declares Manrope from `docs/fonts/manrope-latin(-ext).woff2`. The woff2 files are created by `npm run fonts` (`scripts/get-fonts.mjs`, needs internet, run once, commit the result). Until then the site falls back to the system font. **Never add Google Fonts links back** (GDPR: leaks visitor IPs).
+**Fonts.** `docs/fonts.css` declares Manrope from `docs/fonts/manrope-latin(-ext).woff2`, created by `npm run fonts` (`scripts/get-fonts.mjs`, needs internet, run once, commit). Until then the system font is used. **Never add Google Fonts links back** (GDPR).
 
-**Login (test gate).** `src/auth.js` + `src/auth.jsx`: username `test`, password `test`, session key `qompify.session.v1` (30 days; localStorage if "Zůstat přihlášen", else sessionStorage). The hash lives in the bundle, so **this is a UI gate, not security** (GitHub Pages has no server). Legal pages stay public. Real accounts need a backend (Supabase / Firebase / Cloudflare Access).
+**Login (test gate).** `src/auth.js` + `src/auth.jsx` (Gate is the root component): username `test`, password `test`, session key `qompify.session.v1` (30 days; localStorage if "Zůstat přihlášen", else sessionStorage). The hash lives in the bundle, so this is a UI gate, not security (GitHub Pages has no server). Legal pages stay public. Real accounts need a backend.
+
+**Operator identification.** The standalone "Provozovatel" page was removed in v2.1 on request. The legally required operator details (`LEGAL` in `legal.jsx`) now show in the O nás page (`Who`) and as a one-line `OperatorLine` in the footer and on the login screen. Keep them there; fill the `LEGAL` object.
 
 ---
 
@@ -173,6 +174,8 @@ qompify/
     ├─ BellToggle.jsx/.css    Dependency-free port of React Bits BellToggle (price alert button)
     ├─ JellyRadio.jsx/.css    Dependency-free port of React Bits JellyRadio (resolution/graphics/panel selectors; "Off" item deliberately removed)
     ├─ price.jsx      Odometer price (digit columns, transform only)
+    ├─ circuit.jsx    Motherboard background, pulses, cursor lens, glass refraction filter
+    ├─ fx.jsx         Words (heading rise), Trace (drawn mark), usePointerGlow, FxToggle/useFxPref
     ├─ auth.js / auth.jsx / sha256.js   Test login gate (Gate is the root component in main.jsx), session logic, pure-JS SHA-256
     ├─ prices.json            {"updated":null,"items":{}}  live overlay; items[id]={shops:{Shop:{price,stock}},hist:[[date,price]...]}
     ├─ styles.css     (~250 lines, dense)  All site CSS, rewritten in v2 (tokens → shell → components → pages → login → reduced-motion). Later rules win; check for class-name clashes (see §11)
@@ -326,6 +329,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 
 12. **v12 (2.0.0) — redesign + login + fonts.** Full visual redesign (§3), ASCII background and all blur/reveal/shimmer effects removed, odometer total, sliding tab underline, test login gate, Manrope self-hosting pipeline (`npm run fonts`), legal texts updated for login/session/fonts.
 
+13. **v13 (2.1.0) — circuit + glass.** Motherboard background with pulses and cursor lens, liquid glass (with Chromium refraction), glass tab lens, word-rise headings, trace marks, spring motion, effects switch, Provozovatel page removed (details moved to O nás + footer).
+
 ---
 
 ## 11. BUG / LESSON LOG (do not repeat these)
@@ -350,6 +355,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 | 16 | Pinned verified price mismatch | shop noise vs base price | `VERIFIED` pins the shop price and clamps others |
 | 18 | Assistant read "hra" inside "vyhraje"; "30 000 Kč" became millions | substring matching; `kc` matched as thousands suffix | `has()` matches from word start (`\\bkey`); suffix check `^(k$|tis)`; budget needs a cue (k/tis/Kč, do/za…) or ≥ 5 digits so "RTX 5070" is not a budget |
 | 19 | Sticky bar looked like a glitch | 97 %-opaque nav let content ghost through; anchors scrolled under it | solid `--paper` bar + `scroll-padding-top` |
+| 20 | Heading words glued together ("PosklÃ¡dejPC") | trailing space inside an `inline-block` collapses | put the space outside the `.w` wrapper |
+| 21 | Circuit + glass dropped frame rate | SMIL pulses repainted on the main thread; entrance animation on huge grids; inset blur on 100 cards | pulses as compositor keyframes, animate only first 3 children, no inset blur, `FxToggle` escape hatch |
 | 17 | White text unreadable | fixed bright gradient bottom | dark panels for prose, deeper bottom colour, contrast ≥ 7 |
 
 ---
@@ -375,7 +382,7 @@ Test `data.js` logic in Node by bundling a small `.mjs` that imports it with esb
 
 **Regression checklist (run after every change)**
 
-1. App renders with **zero page errors** on all 9 routes + the 6 legal pages (`#/ochrana-udaju`, `podminky`, `vraceni`, `cookies`, `moje-data`, `provozovatel`) (desktop 1280 and phone 390).
+1. App renders with **zero page errors** on all 9 routes + the 6 legal pages (`#/ochrana-udaju`, `podminky`, `vraceni`, `cookies`, `moje-data`) (desktop 1280 and phone 390).
 2. Top bar: no tab clipped at 1440/1280/1100/1024/900/768/390; Komunita badge centred.
 3. Builder: pick part → slot fills, total updates, badges correct; incompatible parts flagged; PSU weak case; bottleneck warning (i3-12100F + RTX 5080).
 4. Catalog: 101 parts, filters, stock filter, price cap shows RTX 5090.

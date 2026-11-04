@@ -4,8 +4,9 @@ import logo from './assets/logo.png';
 import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles, HoverLayer, PdfBtn } from './extra.jsx';
 import { Benchmarks } from './bench.jsx';
 import { Assistant } from './assistant.jsx';
-import { InfoPage, INFO, LegalLinks } from './legal.jsx';
+import { InfoPage, INFO, LegalLinks, OperatorLine } from './legal.jsx';
 import { Price } from './price.jsx';
+import { Words, Trace, FxToggle } from './fx.jsx';
 import { useAuth, signOut } from './auth.js';
 
 const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita'], ['onas', 'O nás']];
@@ -81,7 +82,7 @@ function Builder({ sel, setSel, add, save, copy, ui, ask }) {
   return (
     <>
       <section className="hero">
-        <h1>Poskládej PC, které nastartuje na první pokus.</h1>
+        <h1><Words text="Poskládej PC, které nastartuje na první pokus." /></h1><Trace />
         <p>Vyber díly. Qompify hlídá socket, zdroj i délku grafiky a hledá nejnižší cenu v pěti českých e-shopech.</p>
       </section>
       <DealsBar ui={ui} />
@@ -247,7 +248,7 @@ function Tabs({ page, badge }) {
     const nav = ref.current, a = nav && nav.querySelector('a[aria-current]');
     if (!nav) return;
     if (!a) { nav.style.setProperty('--o', 0); return; }
-    nav.style.setProperty('--x', a.offsetLeft + 'px'); nav.style.setProperty('--y', a.offsetTop + a.offsetHeight + 'px'); nav.style.setProperty('--w', a.offsetWidth + 'px'); nav.style.setProperty('--o', 1);
+    nav.style.setProperty('--x', a.offsetLeft + 'px'); nav.style.setProperty('--y', a.offsetTop + 'px'); nav.style.setProperty('--h', a.offsetHeight + 'px'); nav.style.setProperty('--w', a.offsetWidth + 'px'); nav.style.setProperty('--o', 1);
     if (!nav.dataset.ready) requestAnimationFrame(() => requestAnimationFrame(() => { nav.dataset.ready = '1'; })); // první umístění bez animace, další plynule
   };
   useLayoutEffect(place, [page, badge]);
@@ -276,6 +277,8 @@ function Footer() {
         <p>Část cen je ověřená na českých e-shopech (10/2026), zbytek jsou odhady a rozdíly mezi obchody jsou simulované, dokud nenapojíš živé feedy. Před nákupem vždy ověř cenu a skladovost u obchodu.</p>
       </div>
       <LegalLinks />
+      <OperatorLine />
+      <FxToggle />
       <p className="legal">© {new Date().getFullYear()} Qompify. Názvy produktů a značek patří jejich vlastníkům.</p>
     </footer>
   );

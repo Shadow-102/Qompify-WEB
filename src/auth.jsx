@@ -2,8 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import logo from './assets/logo.png';
 import { AUTH, signIn, useAuth } from './auth.js';
-import { InfoPage, INFO, LegalLinks, CookieNotice } from './legal.jsx';
+import { InfoPage, INFO, LegalLinks, OperatorLine, CookieNotice } from './legal.jsx';
 import App from './App.jsx';
+import { Circuit } from './circuit.jsx';
+import { Words, Trace, usePointerGlow, useFxPref, FxToggle } from './fx.jsx';
 
 const slugOf = () => location.hash.replace(/^#\/?/, '').split('?')[0];
 const useSlug = () => { const [s, setS] = useState(slugOf); useEffect(() => { const f = () => setS(slugOf()); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f); }, []); return s; };
@@ -18,7 +20,7 @@ function Login() {
     <main className="lg">
       <section className="lgl">
         <Brand />
-        <h1>Poskládej PC, které nastartuje na první pokus.</h1>
+        <h1><Words text="Poskládej PC, které nastartuje na první pokus." /></h1><Trace />
         <p>Kontrola kompatibility, ceny z českých e-shopů a sestava s nejlepším poměrem cena/výkon na jednom místě.</p>
       </section>
       <form className="lgf" onSubmit={submit} noValidate aria-labelledby="lgh">
@@ -34,7 +36,7 @@ function Login() {
         <button className="btn lgb" disabled={!u.trim() || !p}>Přihlásit se</button>
         {AUTH.hint && <p className="lgh muted">Testovací přístup: uživatel <b>{AUTH.hint.user}</b>, heslo <b>{AUTH.hint.pass}</b>. <button type="button" className="qlg-link" onClick={fill}>Vyplnit</button></p>}
       </form>
-      <footer className="lgn"><LegalLinks /></footer>
+      <footer className="lgn"><LegalLinks /><OperatorLine /><FxToggle /></footer>
     </main>
   );
 }
@@ -50,8 +52,10 @@ function Public({ slug }) {
 
 export default function Gate() {
   const user = useAuth(), slug = useSlug();
+  usePointerGlow(); useFxPref();
   return (
     <>
+      <Circuit />
       {user ? <App /> : INFO.includes(slug) ? <Public slug={slug} /> : <Login />}
       <CookieNotice />
     </>

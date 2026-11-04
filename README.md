@@ -55,3 +55,10 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - **Přihlášení (zkušební):** uživatel `test`, heslo `test`. Ověřuje se v prohlížeči, takže jde jen o hradlo v rozhraní, ne o zabezpečení. Právní stránky zůstávají veřejné. Odhlášení je v horní liště.
 - Právní texty aktualizovány (přihlášení, klíč `qompify.session.v1`, písmo bez třetích stran).
 
+## Verze 2.1.0
+- **Pozadí ve tvaru základní desky:** CPU patice, RAM sloty, čipset, PCIe a sběrnice se 45° ohyby, jemně a nenápadně. Po spojích běhají signální pulzy a kolem kurzoru se spoje rozsvítí modře (měděná „čočka“).
+- **Liquid glass:** horní lišta, přihlášení, výběr dílu, okna a plovoucí lišty jsou z matného skla se světelným okrajem. V prohlížečích na Chromiu sklo navíc láme světlo a spoje se na jeho okraji prohýbají. Aktivní záložka je skleněná čočka, která se přelévá s mírným překmitem.
+- **Živější pohyb:** nadpisy se odhalují po slovech, pod nimi se dokreslí „spoj“, ceny se přetáčejí s měkkým překmitem, lesk na tlačítkách a kartách sleduje kurzor. Vše přes `transform` a `opacity`.
+- **Přepínač „Efekty pozadí“** v patičce vypne desku i rozmazané sklo (pro slabší zařízení). Respektuje i systémové „omezit pohyb“ a „omezit průhlednost“.
+- **Odstraněna záložka Provozovatel.** Povinné údaje o provozovateli jsou na stránce O nás a v řádku v patičce. Vyplň objekt `LEGAL` v `src/legal.jsx`.
+

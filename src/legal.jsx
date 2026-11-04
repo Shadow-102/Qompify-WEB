@@ -14,7 +14,7 @@ export const LEGAL = {
 }
 // ▲▲
 
-const KEY = { saved: 'qompify.saved.v1', alerts: 'qompify.alerts.v1', consent: 'qompify.consent.v1', session: 'qompify.session.v1' }
+const KEY = { saved: 'qompify.saved.v1', alerts: 'qompify.alerts.v1', consent: 'qompify.consent.v1', fx: 'qompify.fx.v1', session: 'qompify.session.v1' }
 const store = {
   get: (k) => { try { return localStorage.getItem(k) } catch { return null } },
   set: (k, v) => { try { localStorage.setItem(k, v) } catch { /* úložiště nedostupné */ } },
@@ -36,6 +36,11 @@ function Who() {
       <dl className="qlg-dl">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v || <Miss />}</dd></div>)}</dl>
     </>
   )
+}
+
+export function OperatorLine() {
+  const f = [['', LEGAL.operator], ['IČO ', LEGAL.ico], ['', LEGAL.address], ['', LEGAL.email]]
+  return <p className="qlg-op">Provozovatel: {f.map(([k, v], i) => <span key={i}>{i ? ' · ' : ''}{v ? k + v : <Miss />}</span>)}</p>
 }
 
 function MyData() {
@@ -89,12 +94,14 @@ const PAGES = {
       ]} />
       <H>Co Qompify není</H>
       <p>Není e-shop a nic neprodává. Přihlášení je zatím jen zkušební a probíhá přímo v tvém prohlížeči, žádné účty na serveru nevedeme a osobní údaje nesbíráme. Odkazy vedou do obchodů, kde nákup dokončíš. Z nákupů přes ně zatím nemáme žádnou provizi. Kdybychom partnerské odkazy zavedli, označíme je a doplníme tuto stránku.</p>
-      <p><a href="#/provozovatel">Kdo web provozuje</a> · <a href="#/ochrana-udaju">Jak nakládáme s údaji</a></p>
+      <H>Kdo web provozuje</H>
+      <Who />
+      <p>Web běží na GitHub Pages. <a href="#/ochrana-udaju">Jak nakládáme s údaji</a></p>
     </>
   )],
   'ochrana-udaju': ['Ochrana osobních údajů', () => (
     <>
-      <p>Správcem je provozovatel uvedený na stránce <a href="#/provozovatel">Provozovatel</a>. Platí nařízení GDPR a zákon č. 110/2019 Sb.</p>
+      <p>Správcem je provozovatel uvedený na stránce <a href="#/onas">O nás</a> a v patičce webu. Platí nařízení GDPR a zákon č. 110/2019 Sb.</p>
       <H>Co zpracováváme</H>
       <p>Qompify sám neshromažďuje žádné osobní údaje. Nemá registraci na serveru, formuláře s osobními údaji, analytiku ani reklamu. Zkušební přihlášení se ověřuje přímo v prohlížeči: jméno ani heslo se nikam neodesílají a uloží se jen jméno účtu a čas přihlášení. Sestavy a hlídané ceny zůstávají jen v úložišti tvého prohlížeče.</p>
       <H>Třetí strany, které mohou získat tvou IP adresu</H>
@@ -144,19 +151,13 @@ const PAGES = {
         <div><dt>qompify.saved.v1</dt><dd>Uložené sestavy. Zůstávají, dokud je nesmažeš.</dd></div>
         <div><dt>qompify.alerts.v1</dt><dd>Hlídané ceny a cílové částky.</dd></div>
         <div><dt>qompify.session.v1</dt><dd>Zkušební přihlášení: jméno účtu a čas přihlášení. Uloží se do trvalého úložiště, když necháš „Zůstat přihlášen“, jinak jen do relace prohlížeče. Platí 30 dní, odhlášením se smaže.</dd></div>
+        <div><dt>qompify.fx.v1</dt><dd>Zapamatuje si, že jsi vypnul efekty pozadí.</dd></div>
         <div><dt>qompify.consent.v1</dt><dd>Zapamatuje, že jsi zavřel oznámení o úložišti.</dd></div>
       </dl>
       <p>Takové technické úložiště nevyžaduje souhlas, proto u nás není co odmítat. Kdybychom někdy přidali analytiku nebo reklamu, zeptáme se tě předem. Vše smažeš na stránce <a href="#/moje-data">Moje data</a>. Podrobnosti najdeš v <a href="#/ochrana-udaju">Ochraně údajů</a>.</p>
     </>
   )],
   'moje-data': ['Moje data', () => <MyData />],
-  'provozovatel': ['Provozovatel', () => (
-    <>
-      <p>Web Qompify provozuje:</p>
-      <Who />
-      <p>Web běží na GitHub Pages: <a href="https://shadow-102.github.io/Qompify-WEB/">shadow-102.github.io/Qompify-WEB</a>.</p>
-    </>
-  )],
 }
 
 const SUB = {
@@ -166,7 +167,6 @@ const SUB = {
   vraceni: 'Qompify nic neprodává. Tady je, jak to chodí v e-shopech, kam odkazujeme.',
   cookies: 'Cookies nepoužíváme. Co ukládáme do prohlížeče a proč.',
   'moje-data': 'Podívej se, co je uložené u tebe v prohlížeči, stáhni si to nebo to smaž. Smazáním se také odhlásíš.',
-  provozovatel: 'Kdo web provozuje a jak nás kontaktovat.',
 }
 export const INFO = Object.keys(PAGES)
 

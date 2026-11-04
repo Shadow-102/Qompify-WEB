@@ -305,3 +305,76 @@ input:not([type=range]):not([type=checkbox]):focus-visible,select:focus-visible{
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.dr{will-change:auto}}
 
 .part .actions .btn,.part .actions .ghost{padding:8px 13px;font-size:14px}
+
+/* ===== v3: deska na pozadí, liquid glass, živější pohyb ===== */
+:root{--spring:cubic-bezier(.34,1.45,.5,1);--glass:rgba(255,255,255,.62);--rim:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(21,24,31,.04)}
+.app,.lg{position:relative;z-index:1}
+/* deska */
+.pcb{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:strict}
+.pcb>svg{position:absolute;inset:0;width:100%;height:100%}
+.pcb-art{color:rgba(21,24,31,.085)}
+.pcb-art *{vector-effect:non-scaling-stroke}
+.pcb-art text{font:500 10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.16em;fill:currentColor;stroke:none;vector-effect:none}
+.pcb-art{transform:translateZ(0)}
+.pcb-pulse{position:absolute;left:0;top:0;width:1600px;height:1000px;transform-origin:0 0}
+.pulse{position:absolute;left:0;top:0;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 7px rgba(36,71,224,.14);opacity:0;will-change:transform,opacity}
+.pcb-lens{position:absolute;left:0;top:0;width:380px;height:380px;overflow:hidden;opacity:0;transition:opacity .6s var(--ease);will-change:transform,opacity;-webkit-mask-image:radial-gradient(circle,#000 0,rgba(0,0,0,.85) 26%,transparent 68%);mask-image:radial-gradient(circle,#000 0,rgba(0,0,0,.85) 26%,transparent 68%)}
+.pcb-art-in{position:absolute!important;left:0;top:0;inset:auto!important;color:rgba(36,71,224,.62);will-change:transform}
+.pcb-art-in *{vector-effect:non-scaling-stroke}
+@media(hover:none){.pcb-lens{display:none}}
+/* sklo */
+.nav{background:rgba(246,247,250,.58);-webkit-backdrop-filter:blur(14px) saturate(1.7);backdrop-filter:blur(14px) saturate(1.7);border-bottom:1px solid rgba(255,255,255,.75);box-shadow:0 1px 0 rgba(21,24,31,.05),0 10px 32px -14px rgba(21,24,31,.12)}
+.nav nav a{position:relative;z-index:1;padding:8px 10px;font-weight:600}
+.nav nav a[aria-current]{font-weight:600}
+.ink{height:var(--h,34px);width:var(--w,0);border-radius:99px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.64));border:1px solid rgba(255,255,255,.95);box-shadow:inset 0 1px 0 #fff,inset 0 -8px 14px rgba(36,71,224,.06),0 8px 18px -6px rgba(21,24,31,.16),0 1px 2px rgba(21,24,31,.08);transform:translate3d(var(--x,0),var(--y,0),0);z-index:0}
+.nav nav[data-ready] .ink{transition:transform .65s var(--spring),width .65s var(--spring),height .4s var(--ease),opacity .2s}
+.card{background:rgba(255,255,255,.78);border:1px solid rgba(21,24,31,.07);box-shadow:var(--rim),0 1px 2px rgba(21,24,31,.04),0 10px 22px -16px rgba(21,24,31,.16);position:relative;isolation:isolate}
+.card::before,.deal::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:0;transition:opacity .4s var(--ease);background:radial-gradient(280px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.95),rgba(255,255,255,0) 70%)}
+@media(hover:hover){.card:hover::before,.deal:hover::before{opacity:1}}
+.deal{position:relative;isolation:isolate;background:rgba(255,255,255,.78);box-shadow:var(--rim)}
+.card.sum{background:var(--ink);border-color:rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 40px rgba(255,255,255,.03),0 30px 60px -28px rgba(21,24,31,.55)}
+.card.sum::before{background:radial-gradient(320px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.13),rgba(255,255,255,0) 70%)}
+.btn,.qlg-btn{position:relative;overflow:hidden;isolation:isolate;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 18px -8px rgba(36,71,224,.55)}
+.btn::after,.qlg-btn::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity .3s var(--ease);background:radial-gradient(110px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.42),rgba(255,255,255,0) 70%)}
+.btn:hover::after,.qlg-btn:hover::after{opacity:1}
+.sum .btn,.tray .btn,.qlg-cookie .qlg-btn{box-shadow:inset 0 1px 0 #fff}
+.qlg-btn.alt,.qlg-btn.danger{box-shadow:none}
+.ghost,.mini{overflow:visible}.ghost{box-shadow:var(--rim)}
+.ghost::after,.mini::after{display:none}
+.lgf,.panel,.modal{-webkit-backdrop-filter:blur(26px) saturate(1.8);backdrop-filter:blur(26px) saturate(1.8);border:1px solid rgba(255,255,255,.8);box-shadow:var(--rim),0 30px 70px -30px rgba(21,24,31,.3)}
+.lgf{background:rgba(255,255,255,.62)}
+.panel{background:rgba(255,255,255,.8)}.panel header{background:rgba(255,255,255,.88)}
+.modal{background:rgba(255,255,255,.86)}
+.tray,.toast,.qlg-cookie,.hcard{background:rgba(21,24,31,.74);-webkit-backdrop-filter:blur(20px) saturate(1.7);backdrop-filter:blur(20px) saturate(1.7);border:1px solid rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 24px 50px -16px rgba(21,24,31,.5)}
+html.rf .lgf,html.rf .tray,html.rf .qlg-cookie,html.rf .toast{-webkit-backdrop-filter:url(#lg-ref) blur(14px) saturate(1.8);backdrop-filter:url(#lg-ref) blur(14px) saturate(1.8)}
+/* pohyb */
+.hero p,.lgl p{animation:rise2 .9s var(--ease) .45s backwards}
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.14em;margin-bottom:-.14em}
+.w>span{display:inline-block;animation:rise 1s var(--ease) backwards;animation-delay:calc(var(--i) * 75ms + 60ms)}
+@keyframes rise{from{transform:translate3d(0,108%,0)}}
+@keyframes rise2{from{opacity:0;transform:translate3d(0,14px,0)}}
+.view{animation:none}
+.view>*:nth-child(-n+3){animation:rise2 .65s var(--ease) backwards}
+.view>*:nth-child(2){animation-delay:.05s}.view>*:nth-child(3){animation-delay:.1s}
+.trace{display:block;width:150px;height:auto;margin:22px 0 0;overflow:visible}
+.trace path{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.3s var(--ease) .4s forwards}
+.trace circle{fill:none;stroke:var(--accent);stroke-width:1.6}
+.trace .tv{animation:fade .5s var(--ease) .25s backwards}
+.trace .tp{fill:var(--accent);transform-box:fill-box;transform-origin:center;transform:scale(0);animation:padin .6s var(--spring) 1.35s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}@keyframes padin{to{transform:scale(1)}}
+.hero .trace+p{margin-top:18px}
+.sec::before{content:"";display:inline-block;width:11px;height:11px;margin-right:14px;border:2px solid var(--accent);border-radius:50%;vertical-align:.12em}
+.dr{transition:transform 1.05s var(--spring)}
+.toast{transition:transform .6s var(--spring),opacity .3s}
+.tray{animation:tray .6s var(--spring) both}
+.modal{animation:modal .55s var(--spring) both}
+.qlg-op{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--mu)}
+.lgn{display:grid;gap:10px}
+@media(prefers-reduced-motion:reduce){.w>span,.view>*,.hero p,.lgl p{animation:none!important}.trace path{stroke-dashoffset:0!important}.trace .tp{transform:none!important}.pcb-lens{transition:none}}
+
+.fxt{grid-column:1/-1;justify-self:start;background:none;border:1px solid var(--line2);border-radius:99px;padding:5px 14px;font-size:12.5px;color:var(--mu);transition:border-color .2s,color .2s}.fxt:hover{border-color:var(--ink);color:var(--ink)}.fxt b{color:var(--ink)}
+/* efekty vypnuty (přepínač v patičce) a systémové „omezit průhlednost“ */
+html.lite .pcb-pulse,html.lite .pcb-lens{display:none}html.lite .nav{background:var(--paper);-webkit-backdrop-filter:none;backdrop-filter:none}html.lite .lgf,html.lite .panel,html.lite .modal{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}html.lite .tray,html.lite .toast,html.lite .qlg-cookie,html.lite .hcard{background:var(--ink);-webkit-backdrop-filter:none;backdrop-filter:none}
+@media(prefers-reduced-transparency:reduce){.pcb-pulse,.pcb-lens{display:none}.nav{background:var(--paper);-webkit-backdrop-filter:none;backdrop-filter:none}.lgf,.panel,.modal{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}.tray,.toast,.qlg-cookie,.hcard{background:var(--ink);-webkit-backdrop-filter:none;backdrop-filter:none}}
+
+.lgl .trace{margin:0}

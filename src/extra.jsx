@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Words, Trace } from './fx.jsx';
 import BellToggle from './BellToggle.jsx';
 import JellyRadio from './JellyRadio.jsx';
 import { downloadBuildPdf } from './pdf.js';
@@ -9,7 +10,7 @@ const objs = sel => Object.fromEntries(Object.entries(sel).map(([c, id]) => [c, 
 const selOf = ids => Object.fromEntries(ids.filter(i => BY[i]).map(i => [BY[i].cat, i]));
 const dt = d => new Date(d).toLocaleDateString('cs-CZ');
 export const Badge = ({ l, t }) => <li className={`badge ${l}`}><i />{t}</li>;
-export const Head = ({ title, sub }) => <section className="hero slim"><h1>{title}</h1><p>{sub}</p></section>;
+export const Head = ({ title, sub }) => <section className="hero slim"><h1><Words text={title} /></h1><Trace /><p>{sub}</p></section>;
 export function Offers({ p }) {
   const os = offers(p).slice().sort((a, b) => a.price - b.price), low = os.find(o => o.stock);
   return (
