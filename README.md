@@ -62,3 +62,18 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - **Přepínač „Efekty pozadí“** v patičce vypne desku i rozmazané sklo (pro slabší zařízení). Respektuje i systémové „omezit pohyb“ a „omezit průhlednost“.
 - **Odstraněna záložka Provozovatel.** Povinné údaje o provozovateli jsou na stránce O nás a v řádku v patičce. Vyplň objekt `LEGAL` v `src/legal.jsx`.
 
+## Verze 2.2.0
+- **Tmavý vzhled s měděnou deskou.** Přepínač (slunce/měsíc) je v horní liště, výchozí volba se řídí systémem a pamatuje se. Spoje i pulzy na desce jsou v tmavém vzhledu měděné, ve světlém modré.
+- **Jemnější „Apple“ styl:** plovoucí skleněná lišta, kulatá tlačítka, segmentované přepínače, měkčí stíny a větší rádiusy.
+- **Přihlášení přes Supabase.** Návod níže. Dokud je `src/config.js` prázdný, běží místní zkušební účet bez nápovědy na stránce.
+- **Odstraněna stránka Provozovatel úplně** (včetně řádku v patičce a části na stránce O nás).
+- **Nový článek:** Alza Black Friday 2026 a PC hardware, postavený na datech z Hlídače shopů. Data vznikla skriptem `scripts/alza-bf.py` (viz hlavička souboru) a leží v `src/alzabf.json`.
+
+### Supabase: zapnutí přihlášení
+1. Supabase → **Authentication → Sign In / Providers → Email**: nech zapnuté a vypni **Allow new users to sign up** (účty zakládáš jen ty).
+2. **Authentication → Users → Add user → Create new user**: zadej e-mail a heslo a zaškrtni *Auto Confirm User*.
+3. **Authentication → URL Configuration**: Site URL nastav na `https://shadow-102.github.io/Qompify-WEB/`.
+4. **Project Settings → API**: zkopíruj *Project URL* a klíč *anon* (nebo *publishable*) do `src/config.js`. Klíč `service_role` / `secret` sem nikdy nevkládej.
+5. `npm run build`, commit, push. Od té chvíle se přihlašuje e-mailem a heslem a místní zkušební účet přestane fungovat.
+6. Doporučeno: v SQL Editoru spusť `supabase/keepalive.sql` a v GitHubu přidej secrets `SUPABASE_URL` a `SUPABASE_ANON_KEY`, aby se bezplatný projekt po týdnu nepozastavil.
+

@@ -1,20 +1,12 @@
 // Qompify — O nás, právní stránky, cookie oznámení, smazání dat. Stránky se zobrazují jako běžné záložky (hash routa #/onas, #/ochrana-udaju …).
 import { useEffect, useState } from 'react'
 import { Head } from './extra.jsx'
+import { REMOTE } from './auth.js'
 import './legal.css'
 
-// ▼▼ DOPLŇTE SVÉ ÚDAJE (zákon vyžaduje identifikaci provozovatele webu). Prázdné pole se na webu zobrazí jako upozornění. ▼▼
-export const LEGAL = {
-  operator: '',   // jméno a příjmení, nebo obchodní firma
-  form: '',       // např. "Fyzická osoba podnikající dle živnostenského zákona, zapsaná v živnostenském rejstříku"
-  ico: '',        // IČO
-  address: '',    // adresa sídla / místa podnikání
-  email: '',      // kontaktní e-mail
-  updated: '1. 11. 2026',
-}
-// ▲▲
+const UPDATED = '4. 11. 2026'
 
-const KEY = { saved: 'qompify.saved.v1', alerts: 'qompify.alerts.v1', consent: 'qompify.consent.v1', fx: 'qompify.fx.v1', session: 'qompify.session.v1' }
+const KEY = { saved: 'qompify.saved.v1', alerts: 'qompify.alerts.v1', consent: 'qompify.consent.v1', fx: 'qompify.fx.v1', session: 'qompify.session.v1', theme: 'qompify.theme.v1' }
 const store = {
   get: (k) => { try { return localStorage.getItem(k) } catch { return null } },
   set: (k, v) => { try { localStorage.setItem(k, v) } catch { /* úložiště nedostupné */ } },
@@ -25,24 +17,6 @@ const count = (k) => { try { const v = JSON.parse(store.get(k) || 'null'); retur
 
 const H = ({ children }) => <h2>{children}</h2>
 const L = ({ items }) => <ul>{items.map((t, i) => <li key={i}>{t}</li>)}</ul>
-const Miss = () => <span className="qlg-miss">doplňte</span>
-
-function Who() {
-  const rows = [['Provozovatel', LEGAL.operator], ['Právní forma', LEGAL.form], ['IČO', LEGAL.ico], ['Adresa', LEGAL.address], ['E-mail', LEGAL.email]]
-  const incomplete = rows.some(([, v]) => !v)
-  return (
-    <>
-      {incomplete && <p className="qlg-warn" role="alert">Chybí identifikační údaje provozovatele. Doplňte je v <code>src/legal.jsx</code> (objekt LEGAL) a web znovu sestavte.</p>}
-      <dl className="qlg-dl">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v || <Miss />}</dd></div>)}</dl>
-    </>
-  )
-}
-
-export function OperatorLine() {
-  const f = [['', LEGAL.operator], ['IČO ', LEGAL.ico], ['', LEGAL.address], ['', LEGAL.email]]
-  return <p className="qlg-op">Provozovatel: {f.map(([k, v], i) => <span key={i}>{i ? ' · ' : ''}{v ? k + v : <Miss />}</span>)}</p>
-}
-
 function MyData() {
   const [n, setN] = useState(() => ({ saved: count(KEY.saved), alerts: count(KEY.alerts), keys: store.keys().length }))
   const [ask, setAsk] = useState(false)
@@ -89,24 +63,26 @@ const PAGES = {
         'Orientační cena: odhad. Je takto označená všude, kde se objeví.',
         'Ceny u dalších obchodů se zatím dopočítávají ze základní ceny dílu, nejsou to živé nabídky. Před nákupem je vždy ověř u obchodu.',
         'FPS jsou modelový odhad, ne měření. Historie cen a „slevy“ proti 30denní historii jsou zatím simulované, dokud nepřipojíme živé cenové feedy.',
-        'Sestavy v záložce Komunita jsou ukázky, které připravil provozovatel, ne sestavy skutečných uživatelů.',
+        'Sestavy v záložce Komunita jsou ukázky, které připravil autor webu, ne sestavy skutečných uživatelů.',
         'Asistent sestavy je ve velmi rané beta verzi. Odpovídá jen z dat katalogu a umí se spletnout.',
       ]} />
       <H>Co Qompify není</H>
       <p>Není e-shop a nic neprodává. Přihlášení je zatím jen zkušební a probíhá přímo v tvém prohlížeči, žádné účty na serveru nevedeme a osobní údaje nesbíráme. Odkazy vedou do obchodů, kde nákup dokončíš. Z nákupů přes ně zatím nemáme žádnou provizi. Kdybychom partnerské odkazy zavedli, označíme je a doplníme tuto stránku.</p>
-      <H>Kdo web provozuje</H>
-      <Who />
       <p>Web běží na GitHub Pages. <a href="#/ochrana-udaju">Jak nakládáme s údaji</a></p>
     </>
   )],
   'ochrana-udaju': ['Ochrana osobních údajů', () => (
     <>
-      <p>Správcem je provozovatel uvedený na stránce <a href="#/onas">O nás</a> a v patičce webu. Platí nařízení GDPR a zákon č. 110/2019 Sb.</p>
+      <p>Platí nařízení GDPR a zákon č. 110/2019 Sb.</p>
       <H>Co zpracováváme</H>
-      <p>Qompify sám neshromažďuje žádné osobní údaje. Nemá registraci na serveru, formuláře s osobními údaji, analytiku ani reklamu. Zkušební přihlášení se ověřuje přímo v prohlížeči: jméno ani heslo se nikam neodesílají a uloží se jen jméno účtu a čas přihlášení. Sestavy a hlídané ceny zůstávají jen v úložišti tvého prohlížeče.</p>
+      <p>Qompify neshromažďuje osobní údaje návštěvníků. Nemá veřejnou registraci, analytiku ani reklamu. Sestavy a hlídané ceny zůstávají jen v úložišti tvého prohlížeče.</p>
+      {REMOTE
+        ? <p>Přístup na web je omezený na pozvané uživatele. Přihlášení zajišťuje služba Supabase: při přihlášení se tam zpracuje e-mail, heslo (uložené pouze jako hash) a IP adresa. V prohlížeči se uloží přihlašovací relace.</p>
+        : <p>Přístup na web je zatím zkušebně omezený. Přihlášení se ověřuje přímo v prohlížeči: jméno ani heslo se nikam neodesílají a uloží se jen jméno účtu a čas přihlášení.</p>}
       <H>Třetí strany, které mohou získat tvou IP adresu</H>
       <L items={[
         'GitHub Pages: web běží na hostingu GitHubu, který může běžně zaznamenávat přístupy (IP adresa, čas, prohlížeč).',
+        ...(REMOTE ? ['Supabase: zajišťuje přihlášení a při něm vidí e-mail a IP adresu přihlašované osoby.'] : []),
         'Písmo Manrope je součástí webu a nenačítá se od žádné třetí strany, takže jeho zobrazení nikomu nepředává tvou IP adresu.',
         'Obchody: po kliknutí na odkaz do e-shopu (Alza, Datart, Mironet, TS Bohemia, CZC.cz) se řídíš jejich zásadami.',
       ]} />
@@ -150,7 +126,8 @@ const PAGES = {
       <dl className="qlg-dl">
         <div><dt>qompify.saved.v1</dt><dd>Uložené sestavy. Zůstávají, dokud je nesmažeš.</dd></div>
         <div><dt>qompify.alerts.v1</dt><dd>Hlídané ceny a cílové částky.</dd></div>
-        <div><dt>qompify.session.v1</dt><dd>Zkušební přihlášení: jméno účtu a čas přihlášení. Uloží se do trvalého úložiště, když necháš „Zůstat přihlášen“, jinak jen do relace prohlížeče. Platí 30 dní, odhlášením se smaže.</dd></div>
+        <div><dt>qompify.session.v1</dt><dd>Přihlašovací relace (e-mail a tokeny od přihlašovací služby, u zkušebního režimu jméno účtu). Uloží se do trvalého úložiště, když necháš „Zůstat přihlášen“, jinak jen do relace prohlížeče. Odhlášením se smaže.</dd></div>
+        <div><dt>qompify.theme.v1</dt><dd>Zapamatuje si zvolený vzhled (světlý nebo tmavý).</dd></div>
         <div><dt>qompify.fx.v1</dt><dd>Zapamatuje si, že jsi vypnul efekty pozadí.</dd></div>
         <div><dt>qompify.consent.v1</dt><dd>Zapamatuje, že jsi zavřel oznámení o úložišti.</dd></div>
       </dl>
@@ -181,7 +158,7 @@ export function InfoPage({ slug }) {
       </nav>
       <article className="qlg-panel">
         <Body />
-        <p className="qlg-date">Poslední aktualizace: {LEGAL.updated}</p>
+        <p className="qlg-date">Poslední aktualizace: {UPDATED}</p>
       </article>
     </>
   )

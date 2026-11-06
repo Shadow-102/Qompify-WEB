@@ -7,10 +7,12 @@
     <meta name="description" content="Qompify: skládej PC, ověř kompatibilitu naživo a porovnej ceny v českých e-shopech." />
     <title>Qompify – stavitel PC a srovnávač cen</title>
     <link rel="icon" href="./favicon.png" />
+    <script>try{var t=localStorage.getItem("qompify.theme.v1");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}</script>
+    <style>html{background:#F5F6F8}html[data-theme=dark]{background:#0A0C10}</style>
     <link rel="stylesheet" href="./fonts.css" />
     <link rel="stylesheet" href="./app.css" />
   </head>
-  <body style="background:#F5F6F8;color:#15181F">
+  <body>
     <div id="root"><p id="boot" style="font:16px system-ui,sans-serif;padding:24px">Načítání Qompify…</p></div>
     <noscript><p style="padding:24px">Qompify potřebuje zapnutý JavaScript.</p></noscript>
     <script>

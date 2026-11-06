@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Words, Trace } from './fx.jsx';
+import { AlzaBfArticle, ALZA_META } from './alzabf.jsx';
 import BellToggle from './BellToggle.jsx';
 import JellyRadio from './JellyRadio.jsx';
 import { downloadBuildPdf } from './pdf.js';
@@ -370,6 +371,7 @@ const PART_GLOSS = [
   ['Max. délka GPU a výška chladiče (skříň)', 'Skříň má limity: pokud je karta delší než povolená délka, nevejde se. Stejně tak vysoký vzduchový chladič procesoru. Proto Qompify kontroluje délku karty a formát desky.'],
 ];
 const ARTICLES = [
+  ALZA_META,
   { id: 'monitory', t: 'Jaký monitor koupit v roce 2026', d: 'Interaktivní průvodce: co utáhne tvoje grafika, jak souvisí cena s frekvencí a které monitory za aktuální ceny stojí za to. Obsahuje vysvětlení všech parametrů.', tag: 'Monitory · interaktivní grafy' },
   { id: 'parametry', t: 'Co znamenají parametry PC dílů', d: 'Jádra, VRAM, MT/s, TBW, ATX 3.x. Srozumitelné vysvětlení specifikací procesorů, grafik, pamětí, disků, zdrojů a skříní.', tag: 'Průvodce · slovníček' },
 ];
@@ -419,5 +421,5 @@ export function Articles({ a }) {
       ))}</div>
     </>
   );
-  return (<><a className="back" href="#/clanky">← Všechny články</a>{a === 'monitory' ? <MonitorArticle /> : <PartsArticle />}</>);
+  return (<><a className="back" href="#/clanky">← Všechny články</a>{a === 'alza-bf' ? <AlzaBfArticle /> : a === 'monitory' ? <MonitorArticle /> : <PartsArticle />}</>);
 }

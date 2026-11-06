@@ -1,6 +1,6 @@
 # QOMPIFY — PROJECT BRIEF AND STANDING INSTRUCTIONS FOR AI
 
-> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **4. 11. 2026, package version 2.1.0, zip release v13**.
+> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **5. 11. 2026, package version 2.2.0, zip release v14**.
 
 ---
 
@@ -67,7 +67,7 @@ You are the **lead engineer and product partner** of Qompify, a Czech PC-buildin
 
 ---
 
-## 3. BRAND AND DESIGN SYSTEM (v2.1, "ceramic / graphite / cobalt" + circuit board + liquid glass)
+## 3. BRAND AND DESIGN SYSTEM (v2.2: ceramic/graphite/cobalt light, deep-blue/copper dark, circuit board, liquid glass, Apple-like capsule)
 
 History: v1 glacier/ASCII look was retired in v2.0 ("minimalistic but premium"). v2.1 added, on the owner's request, a **motherboard-circuit background**, **liquid glass** and livelier motion, while staying minimal. Do not bring back the ASCII canvas or gradients behind text.
 
@@ -82,6 +82,10 @@ History: v1 glacier/ASCII look was retired in v2.0 ("minimalistic but premium").
 | `--accent` | `#2447E0` | the only accent: buttons, links, bars, focus, copper traces |
 | status | ok `#16754F`, warn `#8F5C00`, bad `#B3321F` (+ `-s` tints) | badges, FPS tones |
 
+**Themes (v2.2).** `html[data-theme=light|dark]`, set before first paint by an inline script in both `index.html` files, then managed by `useThemePref`/`ThemeToggle` in `fx.jsx` (key `qompify.theme.v1`; no stored choice = follow the system; View Transitions cross-fade). All colors are semantic tokens in `styles.css` (`:root` and `html[data-theme=dark]`): `--ink` is *text* and flips with the theme; `--strong`/`--on-strong` are the *inverted control* (active chip, primary pill); `--dark`/`--dark-rgb` are surfaces that stay dark in both themes (summary, tray, toast, hover card, cookie); `--on-accent` is text on the accent; `--card`, `--input`, `--hi`, `--nav-bg`, `--pill-*`, `--pcb*`, `--pulse*`, `--trace` etc. **Never hard-code `#fff` or `var(--ink)` as a background**; use the tokens or dark mode breaks. Dark accent is light cobalt `#7C9BFF`; the circuit is copper (`--pcb`, `--pcb-hot`, `--pulse`). Contrast of key pairs is tested (>= 4.5:1 in both themes).
+
+**Apple-like polish.** Floating glass **capsule** nav (`.navin`, blur 12 px; `.nav` is only the sticky wrapper), pill buttons, iOS-style segmented control (`.seg .on` white thumb), radii 12/24/30 (`--r1/--r2/--r3`), layered soft shadows, ambient page glow merged into `.pcb` (one fixed layer, not two).
+
 **Typography.** Manrope only (variable 400–800, **self-hosted**, see Fonts), tight display tracking, tabular numerals. **Theovd** only for the "Qompify" wordmark and the PDF header.
 
 **Circuit background (`circuit.jsx`).** A deterministic 1600×1000 SVG scene (CPU socket with LGA pads, 4 RAM slots, VRM row, chipset, M.2, PCIe, parallel 45° trace buses via `offsetPoly`, silkscreen labels) drawn at ~8 % opacity, fixed behind everything (`.pcb`, z-index 0; `.app`/`.lg` are z-index 1). On top: 11 **signal pulses** (CSS `transform` keyframes generated from the trace geometry, so they run on the compositor) and a **cursor lens** (`.pcb-lens`: a 380 px masked window that follows the pointer with a lerp and shows the same art in cobalt via `<use href="#pcb-art">`; lens + inner svg get opposite `translate3d` so the art stays registered). Hidden on touch (`hover:none`) and with reduced motion (no pulses).
@@ -94,9 +98,9 @@ History: v1 glacier/ASCII look was retired in v2.0 ("minimalistic but premium").
 
 **Fonts.** `docs/fonts.css` declares Manrope from `docs/fonts/manrope-latin(-ext).woff2`, created by `npm run fonts` (`scripts/get-fonts.mjs`, needs internet, run once, commit). Until then the system font is used. **Never add Google Fonts links back** (GDPR).
 
-**Login (test gate).** `src/auth.js` + `src/auth.jsx` (Gate is the root component): username `test`, password `test`, session key `qompify.session.v1` (30 days; localStorage if "Zůstat přihlášen", else sessionStorage). The hash lives in the bundle, so this is a UI gate, not security (GitHub Pages has no server). Legal pages stay public. Real accounts need a backend.
+**Login.** `src/auth.js` + `src/auth.jsx` (Gate is the root component), config in `src/config.js`. *Supabase mode* (url + anonKey filled): e-mail + password via Supabase Auth REST (`/auth/v1/token`, refresh, `/logout`, no library), session `qompify.session.v1` `{m:'sb',e,at,rt,x,t}`, refreshed on load when the access token is about to expire, signed out if the server rejects the refresh token, kept on network errors. *Local mode* (config empty): hashed `test/test` account, no hint shown anywhere. The two session formats are mutually invalid. Either way this only hides the UI; the data in the JS bundle stays readable (real protection = move the catalog behind Supabase RLS). Legal pages stay public. Free Supabase projects pause after a week: see `supabase/keepalive.sql` and `.github/workflows/supabase-keepalive.yml`.
 
-**Operator identification.** The standalone "Provozovatel" page was removed in v2.1 on request. The legally required operator details (`LEGAL` in `legal.jsx`) now show in the O nás page (`Who`) and as a one-line `OperatorLine` in the footer and on the login screen. Keep them there; fill the `LEGAL` object.
+**Operator identification: intentionally none.** The owner asked (v2.1, then v2.2 "completely") to remove the Provozovatel page and every operator line. The site therefore shows no operator name/IČO/address. If the site ever goes public or earns money, Czech law requires identifying the operator (and GDPR art. 13 the controller): ask the owner and re-add it.
 
 ---
 
@@ -173,6 +177,8 @@ qompify/
     ├─ spring.js      (~15)   runSpring() physics animator, uiSpring(bounce), reduced()
     ├─ BellToggle.jsx/.css    Dependency-free port of React Bits BellToggle (price alert button)
     ├─ JellyRadio.jsx/.css    Dependency-free port of React Bits JellyRadio (resolution/graphics/panel selectors; "Off" item deliberately removed)
+    ├─ config.js      Supabase URL + anon key (public values; NEVER the service_role key)
+    ├─ alzabf.jsx / alzabf.json   Alza Black Friday article; JSON built by scripts/alza-bf.py from the Hlídač shopů xlsx
     ├─ price.jsx      Odometer price (digit columns, transform only)
     ├─ circuit.jsx    Motherboard background, pulses, cursor lens, glass refraction filter
     ├─ fx.jsx         Words (heading rise), Trace (drawn mark), usePointerGlow, FxToggle/useFxPref
@@ -331,6 +337,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 
 13. **v13 (2.1.0) — circuit + glass.** Motherboard background with pulses and cursor lens, liquid glass (with Chromium refraction), glass tab lens, word-rise headings, trace marks, spring motion, effects switch, Provozovatel page removed (details moved to O nás + footer).
 
+14. **v14 (2.2.0) — dark mode, Supabase, Alza article.** Tokenised theme + copper circuit, capsule nav and Apple-like controls, Supabase auth client (tested against a mock), login hint removed, Provozovatel removed completely, article "Alza Black Friday 2026" (163 PC-hardware items, all numbers computed from the data).
+
 ---
 
 ## 11. BUG / LESSON LOG (do not repeat these)
@@ -357,6 +365,9 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 | 19 | Sticky bar looked like a glitch | 97 %-opaque nav let content ghost through; anchors scrolled under it | solid `--paper` bar + `scroll-padding-top` |
 | 20 | Heading words glued together ("PosklÃ¡dejPC") | trailing space inside an `inline-block` collapses | put the space outside the `.w` wrapper |
 | 21 | Circuit + glass dropped frame rate | SMIL pulses repainted on the main thread; entrance animation on huge grids; inset blur on 100 cards | pulses as compositor keyframes, animate only first 3 children, no inset blur, `FxToggle` escape hatch |
+| 22 | Dark mode: white-on-white buttons | `background:var(--ink);color:#fff` pairs assumed `--ink` is always dark | introduced `--strong/--on-strong/--dark/--on-accent` tokens; never hard-code `#fff`/`--ink` as a background |
+| 23 | `innerText` returned nothing for article sections in tests | `.art{content-visibility:auto}` skips off-screen rendering | use `textContent` in tests (find-in-page and a11y still work) |
+| 24 | Nav blur made the site slower than v13 | blur radius 18 px (software cost ~ radius squared) | 12 px; re-benchmark after any blur change |
 | 17 | White text unreadable | fixed bright gradient bottom | dark panels for prose, deeper bottom colour, contrast ≥ 7 |
 
 ---

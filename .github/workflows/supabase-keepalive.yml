@@ -1,0 +1,18 @@
+name: Supabase keepalive
+# Bezplatné projekty Supabase se po týdnu bez aktivity pozastaví a přihlášení by přestalo fungovat.
+# Workflow jednou za 3 dny zavolá databázi. Potřebuje v GitHubu (Settings → Secrets and variables → Actions) dvě hodnoty:
+# SUPABASE_URL a SUPABASE_ANON_KEY (stejné veřejné hodnoty jako v src/config.js). Bez nich se přeskočí.
+on:
+  schedule: [{ cron: '17 6 */3 * *' }]
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then echo "Secrets nejsou nastavené, přeskakuji."; exit 0; fi
+          curl -fsS "$SUPABASE_URL/rest/v1/keepalive?select=id&limit=1" -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY"

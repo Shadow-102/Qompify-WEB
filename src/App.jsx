@@ -4,9 +4,9 @@ import logo from './assets/logo.png';
 import { Badge, Head, Offers, Compare, ComparePage, DealsBar, Optimizer, Articles, HoverLayer, PdfBtn } from './extra.jsx';
 import { Benchmarks } from './bench.jsx';
 import { Assistant } from './assistant.jsx';
-import { InfoPage, INFO, LegalLinks, OperatorLine } from './legal.jsx';
+import { InfoPage, INFO, LegalLinks } from './legal.jsx';
 import { Price } from './price.jsx';
-import { Words, Trace, FxToggle } from './fx.jsx';
+import { Words, Trace, FxToggle, ThemeToggle } from './fx.jsx';
 import { useAuth, signOut } from './auth.js';
 
 const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita'], ['onas', 'O nás']];
@@ -236,7 +236,7 @@ function Community({ saved, persist, go, copy, alerts, setAlert }) {
           <div className="actions"><button className="ghost" onClick={() => setAlert(id, null)}>Zrušit hlídání</button></div>
         </article>)) : <div className="card empty">Zatím nic nehlídáš. Otevři Detail dílu a nastav cílovou cenu.</div>}</div>
       <h2 className="sec">Ukázkové sestavy</h2>
-      <p className="muted samp">Tyto sestavy připravil provozovatel jako inspiraci, nejsou od skutečných uživatelů. Označení „Líbí se mi“ se ukládá jen u tebe.</p>
+      <p className="muted samp">Tyto sestavy připravil autor webu jako inspiraci, nejsou od skutečných uživatelů. Označení „Líbí se mi“ se ukládá jen u tebe.</p>
       <div className="tiers">{SEEDS.map(b => card(b, false))}</div>
     </>
   );
@@ -277,8 +277,7 @@ function Footer() {
         <p>Část cen je ověřená na českých e-shopech (10/2026), zbytek jsou odhady a rozdíly mezi obchody jsou simulované, dokud nenapojíš živé feedy. Před nákupem vždy ověř cenu a skladovost u obchodu.</p>
       </div>
       <LegalLinks />
-      <OperatorLine />
-      <FxToggle />
+      <div className="lgt"><FxToggle /><ThemeToggle /></div>
       <p className="legal">© {new Date().getFullYear()} Qompify. Názvy produktů a značek patří jejich vlastníkům.</p>
     </footer>
   );
@@ -319,6 +318,7 @@ export default function App() {
           <div className="navin">
             <a className="brand" href="#/builder"><img src={logo} alt="" /><span>Qompify</span></a>
             <Tabs page={page} badge={saved.length} />
+            <ThemeToggle icon />
             <button className="who" onClick={signOut} title={`Přihlášen: ${user}`} aria-label={`Odhlásit se (přihlášen ${user})`}>Odhlásit</button>
           </div>
         </header>
