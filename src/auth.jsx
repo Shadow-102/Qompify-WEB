@@ -44,7 +44,7 @@ function Public({ slug }) {
   return (
     <div className="app">
       <header className="nav"><div className="navin"><Brand /><a className="who" href="#/">← Zpět na přihlášení</a></div></header>
-      <main className="view"><InfoPage slug={slug} /></main>
+      <main className="view" data-page={slug}><InfoPage slug={slug} /></main>
     </div>
   );
 }

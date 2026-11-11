@@ -77,3 +77,14 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 5. `npm run build`, commit, push. Od té chvíle se přihlašuje e-mailem a heslem a místní zkušební účet přestane fungovat.
 6. Doporučeno: v SQL Editoru spusť `supabase/keepalive.sql` a v GitHubu přidej secrets `SUPABASE_URL` a `SUPABASE_ANON_KEY`, aby se bezplatný projekt po týdnu nepozastavil.
 
+## Verze 2.3.0
+- **Gemini v asistentovi.** Asistent dál odpovídá sám tam, kde to umí přesně (ceny, kompatibilita, nejlepší poměr cena/výkon). Na obecné otázky o hardwaru, které nezná, odpoví Gemini a označí to „AI · Gemini“. Mimo téma odmítne větou „S touto žádostí neumím pomoci.“ AI funguje jen v režimu Supabase a jen pro přihlášeného uživatele.
+- **Klíč k Gemini není na webu.** Je uložený jako tajný klíč v Supabase a volá ho jen Edge Function `supabase/functions/gemini/index.ts`, kterou smí použít jen přihlášený uživatel. Do `src/` ani do repozitáře žádný klíč nepatří.
+- **Každá stránka má vlastní příchod** (zvedne se, vplyne zprava, odkryje se kruhem, rozevře jako vějíř, padá shora, skládá se, vyskakuje, odkrývá po řádcích, vjíždí jako list) a **tekutější sklo**: světelný přejezd přes skleněné karty, lesk, tekuté stlačení skleněné čočky v liště.
+
+### Gemini: nasazení (jednorázově)
+1. V Google AI Studiu **zruš klíč, který jsi vložil do chatu, a vytvoř nový**. Nastav si tam i limit útraty nebo kvóty.
+2. Supabase → **Edge Functions → Deploy a new function** → název `gemini` → vlož obsah `supabase/functions/gemini/index.ts` → Deploy. (Nebo přes CLI: `supabase functions deploy gemini`.) Kontrolu JWT nech zapnutou.
+3. Supabase → **Edge Functions → Secrets** → přidej `GEMINI_API_KEY` (nový klíč). Volitelně `GEMINI_MODEL` (výchozí `gemini-3.5-flash`, jiný název zjistíš v AI Studiu), `ALLOWED_ORIGIN` (výchozí `https://shadow-102.github.io`) a `AI_DAILY_LIMIT` (výchozí 100 dotazů na uživatele a den).
+4. Hotovo, web se nemusí znovu sestavovat. Zkus se přihlásit a zeptat asistenta třeba „Kolik VRAM potřebuju na 1440p?“.
+

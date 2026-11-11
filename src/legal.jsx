@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Head } from './extra.jsx'
 import { REMOTE } from './auth.js'
+import { AI_ON } from './ai.js'
 import './legal.css'
 
 const UPDATED = '4. 11. 2026'
@@ -83,6 +84,7 @@ const PAGES = {
       <L items={[
         'GitHub Pages: web běží na hostingu GitHubu, který může běžně zaznamenávat přístupy (IP adresa, čas, prohlížeč).',
         ...(REMOTE ? ['Supabase: zajišťuje přihlášení a při něm vidí e-mail a IP adresu přihlašované osoby.'] : []),
+        ...(AI_ON ? ['Google (Gemini): když se zeptáš asistenta na něco, co umí jen umělá inteligence, odešle se přes Supabase tvůj dotaz, krátká historie chatu a popis tvé sestavy službě Google Gemini. Do dotazů nepiš osobní údaje.'] : []),
         'Písmo Manrope je součástí webu a nenačítá se od žádné třetí strany, takže jeho zobrazení nikomu nepředává tvou IP adresu.',
         'Obchody: po kliknutí na odkaz do e-shopu (Alza, Datart, Mironet, TS Bohemia, CZC.cz) se řídíš jejich zásadami.',
       ]} />

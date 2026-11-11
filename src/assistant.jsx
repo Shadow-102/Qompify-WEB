@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { CATS, PARTS, BY, GAMES, best, dn, fmt, check, power, rec, fpsAt, perf } from './data.js';
+import { CATS, PARTS, BY, GAMES, best, dn, fmt, check, power, rec, fpsAt, perf, spec } from './data.js';
 import { bestValue, avgFps, totalOf } from './value.js';
+import { AI_ON, askAI } from './ai.js';
 
 const LBL = Object.fromEntries(CATS);
 const pr = p => best(p).price;
@@ -121,6 +122,12 @@ function evaluateCurrent(o) {
   return [{ lines: [head, `Za stejné peníze to jde líp. Tahle sestava dává ${r.fps} FPS za ${fmt(totalOf(p))}, tedy ${bestV.toFixed(1)} FPS na 1 000 Kč (asi o ${gain} % víc):`] }, buildMsg([], p), { lines: [METHOD, verified(p)] }];
 }
 
+// Stručný popis sestavy pro AI (jen to, co už uživatel vidí na obrazovce).
+export const buildContext = sel => {
+  const o = objs(sel), parts = ordered(o).map(p => ({ druh: LBL[p.cat], nazev: dn(p), cena_kc: pr(p), parametry: spec(p) }));
+  return { sestava: parts, celkem_kc: parts.reduce((a, p) => a + p.cena_kc, 0), kontrola: parts.length ? check(o).map(r => r.t) : [] };
+};
+
 export function answer(q, sel) {
   const o = objs(sel), t = norm(q), n = Object.keys(o).length, has = (...k) => k.some(x => new RegExp('\\b' + x).test(t)); // shoda od začátku slova: „hra“ nesmí chytit „vyhraje“
   if (/^(ahoj|cau|nazdar|dobry den|cus|zdravim)\b/.test(t)) return [{ lines: ['Ahoj! Napiš rozpočet a k čemu PC chceš, třeba „nejlepší sestava za 30 000 Kč“, nebo se zeptej na díly své sestavy.'] }];
@@ -151,7 +158,21 @@ export function Assistant({ sel, auto }) {
     list.forEach((r, i) => { d += i ? 650 : 450; timers.current.push(setTimeout(() => setMsgs(m => [...m, { who: 'bot', ...r }]), d)); });
     timers.current.push(setTimeout(() => setBusy(false), d + 30));
   };
-  const ask = q => { if (!q.trim()) return; clear(); setMsgs(m => [...m, { who: 'me', lines: [q] }]); reply(answer(q, sel)); setTxt(''); };
+  const AIERR = { auth: 'Přihlášení vypršelo. Přihlas se prosím znovu.', rate: 'Ptáš se moc rychle. Zkus to za chvilku.', missing: 'Odpovědi umělé inteligence zatím nejsou zapnuté.', network: 'Nepodařilo se spojit se serverem. Zkontroluj připojení.', server: 'Umělá inteligence teď neodpovídá. Zkus to za chvíli.', empty: 'Umělá inteligence tentokrát neodpověděla. Zkus otázku přeformulovat.' };
+  const history = () => msgs.filter(m => !m.build && m.lines.length).slice(-6).map(m => ({ role: m.who === 'me' ? 'user' : 'model', text: m.lines.join(' ') }));
+  const askModel = async q => {
+    setBusy(true);
+    try {
+      const text = await askAI(q, buildContext(sel), history());
+      if (text.trim().startsWith('S touto žádostí neumím pomoci')) reply(UNKNOWN);
+      else { setMsgs(m => [...m, { who: 'bot', ai: true, lines: text.split(/\n+/).map(x => x.trim()).filter(Boolean) }]); setBusy(false); }
+    } catch (e) { setMsgs(m => [...m, { who: 'bot', lines: [AIERR[e.code] || AIERR.server] }]); setBusy(false); }
+  };
+  const ask = q => {
+    if (!q.trim() || busy) return; clear(); setMsgs(m => [...m, { who: 'me', lines: [q] }]); setTxt('');
+    const r = answer(q, sel);
+    if (r === UNKNOWN && AI_ON) askModel(q); else reply(r);
+  };
   useEffect(() => {
     clear(); setBusy(false);
     const total = Object.values(sel).reduce((a, id) => a + pr(BY[id]), 0);
@@ -162,12 +183,14 @@ export function Assistant({ sel, auto }) {
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [msgs, busy]);
   return (
     <section className="card assist" aria-label="Asistent sestavy (beta)">
-      <header><h2>Asistent sestavy <span className="beta">beta</span></h2><small>Je ve velmi rané beta verzi a zatím dost syrový. Odpovídá jen na otázky o sestavě, cenách, výkonu a kompatibilitě, a umí navrhnout sestavu s nejlepším poměrem cena/výkon. Odpovídá z dat katalogu, FPS jsou odhad.</small></header>
+      <header><h2>Asistent sestavy <span className="beta">beta</span></h2><small>Je ve velmi rané beta verzi a zatím dost syrový. Odpovídá jen na otázky o sestavě, cenách, výkonu a kompatibilitě, a umí navrhnout sestavu s nejlepším poměrem cena/výkon. Odpovídá z dat katalogu, FPS jsou odhad.{AI_ON ? ' Obecné otázky o hardwaru zodpoví umělá inteligence (Gemini).' : ''}</small></header>
       <div className="chat" ref={box} aria-live="polite">
         {msgs.map((m, i) => (
           <div key={i} className={`msg ${m.who}`}>
             {m.part && <b className="mhead" data-part={m.part}>{LBL[m.cat]}: {dn(BY[m.part])}</b>}
+            {m.ai && <small className="aitag">AI · Gemini</small>}
             {m.lines.map((l, j) => <p key={j}>{l}</p>)}
+            {m.ai && <small className="aiwarn">Odpověď vygenerovala umělá inteligence a může se mýlit. Ceny a kompatibilitu ověř.</small>}
             {m.build && (
               <>
                 <ul className="abuild">{m.build.ids.map(id => <li key={id} data-part={id}><span>{LBL[BY[id].cat]}</span><b>{dn(BY[id])}</b><em>{fmt(pr(BY[id]))}</em></li>)}</ul>

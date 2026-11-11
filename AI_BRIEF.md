@@ -1,6 +1,6 @@
 # QOMPIFY — PROJECT BRIEF AND STANDING INSTRUCTIONS FOR AI
 
-> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **5. 11. 2026, package version 2.2.0, zip release v14**.
+> **How to use this file.** Paste it as the first message of a new AI chat (or attach it next to the project zip). It tells the AI what Qompify is, how the code is organised, what has already been built and broken, how to test and deploy, and how to behave. State of the project: **6. 11. 2026, package version 2.3.0, zip release v15**.
 
 ---
 
@@ -85,6 +85,10 @@ History: v1 glacier/ASCII look was retired in v2.0 ("minimalistic but premium").
 **Themes (v2.2).** `html[data-theme=light|dark]`, set before first paint by an inline script in both `index.html` files, then managed by `useThemePref`/`ThemeToggle` in `fx.jsx` (key `qompify.theme.v1`; no stored choice = follow the system; View Transitions cross-fade). All colors are semantic tokens in `styles.css` (`:root` and `html[data-theme=dark]`): `--ink` is *text* and flips with the theme; `--strong`/`--on-strong` are the *inverted control* (active chip, primary pill); `--dark`/`--dark-rgb` are surfaces that stay dark in both themes (summary, tray, toast, hover card, cookie); `--on-accent` is text on the accent; `--card`, `--input`, `--hi`, `--nav-bg`, `--pill-*`, `--pcb*`, `--pulse*`, `--trace` etc. **Never hard-code `#fff` or `var(--ink)` as a background**; use the tokens or dark mode breaks. Dark accent is light cobalt `#7C9BFF`; the circuit is copper (`--pcb`, `--pcb-hot`, `--pulse`). Contrast of key pairs is tested (>= 4.5:1 in both themes).
 
 **Apple-like polish.** Floating glass **capsule** nav (`.navin`, blur 12 px; `.nav` is only the sticky wrapper), pill buttons, iOS-style segmented control (`.seg .on` white thumb), radii 12/24/30 (`--r1/--r2/--r3`), layered soft shadows, ambient page glow merged into `.pcb` (one fixed layer, not two).
+
+**Gemini / AI rules (v2.3).** (1) **Never put an API key in the client, the repo or a build-time constant**: GitHub Pages ships everything to every visitor. Keys live only in Supabase Secrets. (2) The assistant tries the rule engine first (`answer()`); only when it returns the `UNKNOWN` object *and* `AI_ON` (Supabase mode) does it call `askAI()`. AI answers carry the `AI · Gemini` tag and a "může se mýlit" warning; an AI refusal is shown as the standard "S touto žádostí neumím pomoci." (3) Context sent to the model = the loaded build (names, prices, specs, check messages) + last 6 chat turns, wrapped as DATA in the prompt, never as instructions. (4) Privacy page discloses Google Gemini only when AI is on. (5) The model name is a server setting (`GEMINI_MODEL`), model ids change often.
+
+**Page animations (v2.3).** `main.view[data-page=...]` selects a unique entrance per page: builder `fx-lift`+`fx-slide-r`, namiru `fx-iris` (clip-path), porovnat `fx-slide-l`/`fx-slide-r`, benchmarky `fx-zoom`, sestavy `fx-fan`, katalog `fx-drop` (grid not animated), clanky `fx-stack`, komunita `fx-pop`, onas `fx-line`, legal `fx-sheet`, login `fx-liquid`. Only `transform`/`opacity`/`clip-path`; tested. **Liquid glass extras:** specular `sweep` across `.card.sum`, `.lgf` and the first cards (needs `overflow:clip`), `--gloss` gradient on glass surfaces, tab lens `squash` (independent `scale` property so it composes with the translate). A pointer-following sheen on the nav was tried and removed (repaints a backdrop-filter element).
 
 **Typography.** Manrope only (variable 400–800, **self-hosted**, see Fonts), tight display tracking, tabular numerals. **Theovd** only for the "Qompify" wordmark and the PDF header.
 
@@ -178,6 +182,8 @@ qompify/
     ├─ BellToggle.jsx/.css    Dependency-free port of React Bits BellToggle (price alert button)
     ├─ JellyRadio.jsx/.css    Dependency-free port of React Bits JellyRadio (resolution/graphics/panel selectors; "Off" item deliberately removed)
     ├─ config.js      Supabase URL + anon key (public values; NEVER the service_role key)
+    ├─ ai.js          askAI(): calls the Supabase Edge Function `gemini` with the user's JWT. The browser never sees a Gemini key.
+    ├─ (supabase/functions/gemini/index.ts)  Edge Function, one file, no imports: verifies the user's JWT via /auth/v1/user, size limits, per-user throttle, system prompt with refusal rule, calls Gemini generateContent. Key = Supabase secret GEMINI_API_KEY.
     ├─ alzabf.jsx / alzabf.json   Alza Black Friday article; JSON built by scripts/alza-bf.py from the Hlídač shopů xlsx
     ├─ price.jsx      Odometer price (digit columns, transform only)
     ├─ circuit.jsx    Motherboard background, pulses, cursor lens, glass refraction filter
@@ -339,6 +345,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 
 14. **v14 (2.2.0) — dark mode, Supabase, Alza article.** Tokenised theme + copper circuit, capsule nav and Apple-like controls, Supabase auth client (tested against a mock), login hint removed, Provozovatel removed completely, article "Alza Black Friday 2026" (163 PC-hardware items, all numbers computed from the data).
 
+15. **v15 (2.3.0) — Gemini + page animations.** Supabase Edge Function proxy for Gemini (22 logic checks), assistant AI fallback (18 client checks with a mock function), 11 distinct page entrances, extra liquid glass. Benchmarked ~15–20 % more slow frames than v14 in the software-rendered stress test.
+
 ---
 
 ## 11. BUG / LESSON LOG (do not repeat these)
@@ -368,6 +376,8 @@ Algorithm: for every CPU (brand-filtered; office requires iGPU) pick the cheapes
 | 22 | Dark mode: white-on-white buttons | `background:var(--ink);color:#fff` pairs assumed `--ink` is always dark | introduced `--strong/--on-strong/--dark/--on-accent` tokens; never hard-code `#fff`/`--ink` as a background |
 | 23 | `innerText` returned nothing for article sections in tests | `.art{content-visibility:auto}` skips off-screen rendering | use `textContent` in tests (find-in-page and a11y still work) |
 | 24 | Nav blur made the site slower than v13 | blur radius 18 px (software cost ~ radius squared) | 12 px; re-benchmark after any blur change |
+| 25 | Owner pasted an API key into the chat and asked to put it in the site | static hosting exposes any client-side key | server-side secret + authenticated Edge Function; tell the owner to rotate the exposed key |
+| 26 | Nav sheen cost ~20 frames | pointer updates repaint a backdrop-filter element | removed; sheen only on non-blurred cards |
 | 17 | White text unreadable | fixed bright gradient bottom | dark panels for prose, deeper bottom colour, contrast ≥ 7 |
 
 ---

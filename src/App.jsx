@@ -250,6 +250,9 @@ function Tabs({ page, badge }) {
     if (!a) { nav.style.setProperty('--o', 0); return; }
     nav.style.setProperty('--x', a.offsetLeft + 'px'); nav.style.setProperty('--y', a.offsetTop + 'px'); nav.style.setProperty('--h', a.offsetHeight + 'px'); nav.style.setProperty('--w', a.offsetWidth + 'px'); nav.style.setProperty('--o', 1);
     if (!nav.dataset.ready) requestAnimationFrame(() => requestAnimationFrame(() => { nav.dataset.ready = '1'; })); // první umístění bez animace, další plynule
+    const ink = nav.querySelector('.ink');
+    if (nav.dataset.ready && ink && nav.dataset.last && nav.dataset.last !== a.textContent) { ink.classList.remove('go'); void ink.offsetWidth; ink.classList.add('go'); } // „tekutý“ stisk čočky při přesunu
+    nav.dataset.last = a.textContent;
   };
   useLayoutEffect(place, [page, badge]);
   useEffect(() => { addEventListener('resize', place); document.fonts?.ready.then(place); return () => removeEventListener('resize', place); }, []);
@@ -323,7 +326,7 @@ export default function App() {
           </div>
         </header>
         {hit.length > 0 && <div className="banner" role="status">Cena klesla: {hit.map(([id, al]) => `${dn(LOOK[id])} (${fmt(best(LOOK[id]).price)}, cíl ${fmt(al.target)})`).join(' · ')}</div>}
-        <main key={page} className="view">
+        <main key={page} className="view" data-page={NAV.some(n => n[0] === page) || INFO.includes(page) ? page : 'builder'}>
           {INFO.includes(page) ? <InfoPage slug={page} /> : page === 'namiru' ? <Optimizer go={go} save={save} /> : page === 'porovnat' ? <ComparePage sel={sel} add={add} say={say} alerts={alerts} setAlert={setAlert} /> : page === 'clanky' ? <Articles a={q.get('a')} /> : page === 'benchmarky' ? <Benchmarks /> : page === 'sestavy' ? <Tiers go={go} save={save} /> : page === 'katalog' ? <Catalog add={add} say={say} ui={ui} /> : page === 'komunita' ? <Community saved={saved} persist={persist} go={go} copy={copy} alerts={alerts} setAlert={setAlert} /> : <Builder sel={sel} setSel={setSel} add={add} save={save} copy={copy} ui={ui} ask={q.get('ask')} />}
         </main>
         <Footer />

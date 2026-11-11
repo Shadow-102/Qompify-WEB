@@ -56,6 +56,14 @@ export async function refresh() {
   } catch { /* offline: ponech */ }
 }
 
+// Platný přístupový token pro volání vlastních funkcí (obnoví se, pokud brzy vyprší). Mimo Supabase režim vrací null.
+export async function getToken() {
+  if (!REMOTE) return null;
+  let f = find(); if (!f) return null;
+  if (f[1].x - Date.now() / 1000 < 90) { await refresh(); f = find(); }
+  return f ? f[1].at : null;
+}
+
 let user = currentUser(); const subs = new Set();
 const set = u => { user = u; subs.forEach(f => f()); };
 if (typeof addEventListener !== 'undefined') { addEventListener('storage', e => { if (e.key === SESSION_KEY) set(currentUser()); }); if (REMOTE) refresh(); }

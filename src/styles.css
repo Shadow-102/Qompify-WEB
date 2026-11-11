@@ -451,3 +451,67 @@ html[data-theme=dark] .logo-dim img,html[data-theme=dark] .brand img{filter:satu
 .frow input:not([type=range]):not([type=checkbox]),.frow select{width:100%;min-width:0;padding:11px 14px;border-radius:var(--r1);border:1px solid var(--line2);background:var(--input);color:var(--ink);transition:border-color .2s,box-shadow .2s}
 .frow input:not([type=range]):not([type=checkbox]):focus,.frow select:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-s)}
 .frow input::placeholder{color:var(--mu);opacity:.8}
+.aitag{display:inline-block;margin-bottom:6px;padding:2px 9px;border-radius:99px;background:var(--accent-s);color:var(--accent-d);font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.aiwarn{display:block;margin-top:8px;font-size:12px;color:var(--mu)}
+
+/* ===== v5: každá stránka má vlastní příchod + tekutější sklo ===== */
+:root{--liquid:cubic-bezier(.2,.9,.25,1.1);--sweep:rgba(255,255,255,.45);--gloss:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0) 58%)}
+html[data-theme=dark]{--sweep:rgba(255,255,255,.15);--gloss:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,0) 58%)}
+@keyframes fx-lift{from{opacity:0;transform:translate3d(0,34px,0) scale(.985)}}
+@keyframes fx-slide-r{from{opacity:0;transform:translate3d(46px,0,0)}}
+@keyframes fx-slide-l{from{opacity:0;transform:translate3d(-46px,0,0)}}
+@keyframes fx-iris{from{opacity:0;clip-path:circle(0% at 14% 38%)}to{opacity:1;clip-path:circle(150% at 14% 38%)}}
+@keyframes fx-zoom{from{opacity:0;transform:scale(.93)}}
+@keyframes fx-fan{from{opacity:0;transform:perspective(900px) translate3d(0,40px,0) rotateX(14deg)}}
+@keyframes fx-drop{from{opacity:0;transform:translate3d(0,-30px,0)}}
+@keyframes fx-stack{from{opacity:0;transform:translate3d(0,42px,0) rotate(-1.6deg)}}
+@keyframes fx-pop{from{opacity:0;transform:scale(.82)}}
+@keyframes fx-line{from{opacity:0;clip-path:inset(0 0 100% 0);transform:translate3d(0,12px,0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes fx-sheet{from{opacity:0;transform:translate3d(28px,0,0) scale(.985)}}
+@keyframes fx-liquid{from{opacity:0;transform:translate3d(0,-26px,0) scale(.9)}60%{opacity:1;transform:translate3d(0,5px,0) scale(1.015)}}
+@keyframes sweep{from{transform:translate3d(-30%,0,0) skewX(-14deg)}to{transform:translate3d(330%,0,0) skewX(-14deg)}}
+@keyframes squash{0%{scale:1 1}28%{scale:1.16 .84}58%{scale:.97 1.06}100%{scale:1 1}}
+/* 1 Stavitel: sestava vyjede nahoru, souhrn vplyne zprava */
+.view[data-page=builder]>.builder{animation:none}
+.view[data-page=builder] .builder>.slots{animation:fx-lift .8s var(--liquid) backwards}
+.view[data-page=builder] .builder>.side{animation:fx-slide-r .8s var(--liquid) .12s backwards}
+/* 2 Na míru: obsah se odkryje kruhem (clip-path) */
+.view[data-page=namiru]>:not(.hero):nth-child(-n+4){animation:fx-iris .95s var(--ease) .1s backwards}
+/* 3 Porovnat: levý panel zleva, výsledky zprava */
+.view[data-page=porovnat]>.cmpgrid{animation:none}
+.view[data-page=porovnat] .cmpgrid>.cmpl{animation:fx-slide-l .8s var(--liquid) backwards}
+.view[data-page=porovnat] .cmpgrid>:not(.cmpl){animation:fx-slide-r .8s var(--liquid) .1s backwards}
+/* 4 Benchmarky: karty se nafoukly ze zmenšeniny */
+.view[data-page=benchmarky]>:not(.hero):nth-child(-n+5){animation:fx-zoom .72s var(--liquid) backwards}
+.view[data-page=benchmarky]>:nth-child(3){animation-delay:.08s}.view[data-page=benchmarky]>:nth-child(4){animation-delay:.16s}.view[data-page=benchmarky]>:nth-child(5){animation-delay:.24s}
+/* 5 Sestavy: karty se rozevřou jako vějíř v perspektivě */
+.view[data-page=sestavy]>.tiers{animation:none}
+.view[data-page=sestavy] .tiers>.card:nth-child(-n+4){animation:fx-fan .72s var(--liquid) backwards}
+.view[data-page=sestavy] .tiers>.card:nth-child(2){animation-delay:.09s}.view[data-page=sestavy] .tiers>.card:nth-child(3){animation-delay:.18s}.view[data-page=sestavy] .tiers>.card:nth-child(4){animation-delay:.27s}
+/* 6 Katalog: filtry spadnou shora, mřížka jen zprůhlední (stovky karet neanimujeme) */
+.view[data-page=katalog]>:not(.hero):not(.catalog):nth-child(-n+4){animation:fx-drop .72s var(--liquid) backwards}
+.view[data-page=katalog]>:nth-child(3){animation-delay:.07s}
+/* 7 Články: karty se naskládají s drobným natočením */
+.view[data-page=clanky]>.tiers{animation:none}
+.view[data-page=clanky] .tiers>.artcard{animation:fx-stack .8s var(--liquid) backwards}
+.view[data-page=clanky] .tiers>.artcard:nth-child(2){animation-delay:.1s}.view[data-page=clanky] .tiers>.artcard:nth-child(3){animation-delay:.2s}.view[data-page=clanky] .tiers>.artcard:nth-child(4){animation-delay:.3s}
+.view[data-page=clanky]>:is(.ahead,.card.art):nth-child(-n+4){animation:fx-stack .8s var(--liquid) backwards}
+/* 8 Komunita: ukázkové sestavy vyskočí */
+.view[data-page=komunita]>.tiers{animation:none}
+.view[data-page=komunita] .build:nth-child(-n+6){animation:fx-pop .7s var(--spring) backwards}
+.view[data-page=komunita] .build:nth-child(2){animation-delay:.07s}.view[data-page=komunita] .build:nth-child(3){animation-delay:.14s}.view[data-page=komunita] .build:nth-child(4){animation-delay:.21s}.view[data-page=komunita] .build:nth-child(5){animation-delay:.28s}.view[data-page=komunita] .build:nth-child(6){animation-delay:.35s}
+/* 9 O nás: řádky textu se odkrývají shora dolů */
+.view[data-page=onas] .qlg-panel{animation:none}
+.view[data-page=onas] .qlg-panel>*{animation:fx-line .78s var(--ease) backwards}
+.view[data-page=onas] .qlg-panel>:nth-child(1){animation-delay:0.15s}.view[data-page=onas] .qlg-panel>:nth-child(2){animation-delay:0.22s}.view[data-page=onas] .qlg-panel>:nth-child(3){animation-delay:0.29s}.view[data-page=onas] .qlg-panel>:nth-child(4){animation-delay:0.36s}.view[data-page=onas] .qlg-panel>:nth-child(5){animation-delay:0.43s}.view[data-page=onas] .qlg-panel>:nth-child(6){animation-delay:0.50s}.view[data-page=onas] .qlg-panel>:nth-child(7){animation-delay:0.57s}.view[data-page=onas] .qlg-panel>:nth-child(8){animation-delay:0.64s}.view[data-page=onas] .qlg-panel>:nth-child(9){animation-delay:0.71s}.view[data-page=onas] .qlg-panel>:nth-child(10){animation-delay:0.78s}
+/* 10 Právní stránky: panel vjede zprava jako list */
+.view:is([data-page=ochrana-udaju],[data-page=podminky],[data-page=vraceni],[data-page=cookies],[data-page=moje-data]) .qlg-panel{animation:fx-sheet .72s var(--liquid) backwards}
+/* 11 Přihlášení: karta dopadne jako kapka */
+.lgf{animation:fx-liquid 1.2s var(--liquid) .25s backwards}
+/* tekuté sklo: světelný přejezd, lesk, odlesk lišty, stisk čočky */
+.card.sum,.lgf,.tiers>.card:nth-child(-n+4),.view>.card:first-of-type{overflow:clip}
+.lgf{position:relative}
+.card.sum::after,.lgf::after,.tiers>.card:nth-child(-n+4)::after,.view>.card:first-of-type::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:38%;pointer-events:none;background:linear-gradient(105deg,transparent,var(--sweep),transparent);animation:sweep 1.5s var(--ease) .6s 1 backwards}
+.navin,.lgf,.panel,.modal{background-image:var(--gloss)}
+.ink.go{animation:squash .8s var(--ease)}
+@media(prefers-reduced-motion:reduce){.card.sum::after,.lgf::after,.tiers>.card::after,.view>.card::after,.lgf{animation:none!important}.ink.go{animation:none}}
