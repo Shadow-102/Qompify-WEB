@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CATS, PARTS, BY, GAMES, best, dn, fmt, check, power, rec, fpsAt, perf, spec } from './data.js';
 import { bestValue, avgFps, totalOf } from './value.js';
-import { AI_ON, askAI } from './ai.js';
+import { AI_ON, AI_FN, askAI } from './ai.js';
 
 const LBL = Object.fromEntries(CATS);
 const pr = p => best(p).price;
@@ -158,7 +158,7 @@ export function Assistant({ sel, auto }) {
     list.forEach((r, i) => { d += i ? 650 : 450; timers.current.push(setTimeout(() => setMsgs(m => [...m, { who: 'bot', ...r }]), d)); });
     timers.current.push(setTimeout(() => setBusy(false), d + 30));
   };
-  const AIERR = { auth: 'Přihlášení vypršelo. Přihlas se prosím znovu.', rate: 'Ptáš se moc rychle. Zkus to za chvilku.', missing: 'Odpovědi umělé inteligence zatím nejsou zapnuté.', network: 'Nepodařilo se spojit se serverem. Zkontroluj připojení.', server: 'Umělá inteligence teď neodpovídá. Zkus to za chvíli.', empty: 'Umělá inteligence tentokrát neodpověděla. Zkus otázku přeformulovat.' };
+  const AIERR = (e) => ({ auth: `Server odmítl přihlášení${e.detail ? ' (' + e.detail + ')' : ''}. Přihlas se znovu. Když to nepomůže, vypni u funkce v Supabase volbu „Verify JWT“, funkce si přihlášení ověřuje sama.`, rate: 'Ptáš se moc rychle. Zkus to za chvilku.', missing: `Funkce AI nebyla na serveru nalezena (hledám „${AI_FN}“). V Supabase → Edge Functions zkontroluj poslední část její adresy a vlož ji do src/config.js jako aiFunction.`, config: 'Funkce AI nemá nastavený klíč. V Supabase → Edge Functions → Secrets přidej GEMINI_API_KEY.', upstream: `Gemini vrátilo chybu ${e.detail}. Zkontroluj klíč a název modelu (secret GEMINI_MODEL, třeba gemini-flash-latest).`, network: 'Nepodařilo se spojit se serverem. Zkontroluj připojení.', server: `Funkce AI na serveru selhala${e.detail ? ' (kód ' + e.detail + ')' : ''}. V Supabase → Edge Functions → Logs je podrobnost.`, empty: 'Umělá inteligence tentokrát neodpověděla. Zkus otázku přeformulovat.' }[e.code] || 'Umělá inteligence teď neodpovídá. Zkus to za chvíli.');
   const history = () => msgs.filter(m => !m.build && m.lines.length).slice(-6).map(m => ({ role: m.who === 'me' ? 'user' : 'model', text: m.lines.join(' ') }));
   const askModel = async q => {
     setBusy(true);
@@ -166,7 +166,7 @@ export function Assistant({ sel, auto }) {
       const text = await askAI(q, buildContext(sel), history());
       if (text.trim().startsWith('S touto žádostí neumím pomoci')) reply(UNKNOWN);
       else { setMsgs(m => [...m, { who: 'bot', ai: true, lines: text.split(/\n+/).map(x => x.trim()).filter(Boolean) }]); setBusy(false); }
-    } catch (e) { setMsgs(m => [...m, { who: 'bot', lines: [AIERR[e.code] || AIERR.server] }]); setBusy(false); }
+    } catch (e) { setMsgs(m => [...m, { who: 'bot', lines: [AIERR(e)] }]); setBusy(false); }
   };
   const ask = q => {
     if (!q.trim() || busy) return; clear(); setMsgs(m => [...m, { who: 'me', lines: [q] }]); setTxt('');

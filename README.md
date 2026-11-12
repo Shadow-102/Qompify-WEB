@@ -88,3 +88,10 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 3. Supabase → **Edge Functions → Secrets** → přidej `GEMINI_API_KEY` (nový klíč). Volitelně `GEMINI_MODEL` (výchozí `gemini-3.5-flash`, jiný název zjistíš v AI Studiu), `ALLOWED_ORIGIN` (výchozí `https://shadow-102.github.io`) a `AI_DAILY_LIMIT` (výchozí 100 dotazů na uživatele a den).
 4. Hotovo, web se nemusí znovu sestavovat. Zkus se přihlásit a zeptat asistenta třeba „Kolik VRAM potřebuju na 1440p?“.
 
+### Když AI nefunguje
+Asistent teď napíše, co přesně je špatně. Nejčastější příčiny:
+- **„Funkce AI nebyla nalezena“**: v Supabase → Edge Functions se funkce volá poslední částí adresy (`…/functions/v1/TOTO`), ne zobrazovaným názvem. Tu část vlož do `src/config.js` jako `aiFunction`, spusť `npm run build` a nahraj.
+- **„Server odmítl přihlášení (401)“**: u funkce vypni volbu *Verify JWT*. Funkce si přihlášení ověřuje sama a vestavěná kontrola neumí novější typ klíčů Supabase.
+- **„Gemini vrátilo chybu 404 / 400“**: špatný model nebo klíč. Přidej secret `GEMINI_MODEL` (třeba `gemini-flash-latest`) nebo zkontroluj `GEMINI_API_KEY`.
+- **Asistent jen píše „S touto žádostí neumím pomoci“ a AI se nikdy nezeptá**: web běží v místním režimu, protože `url` a `anonKey` v `src/config.js` jsou prázdné (viz Supabase výše). Příkaz `rsync` z nasazení ti může `src/config.js` přepsat prázdným. Proto ho spouštěj s `--exclude src/config.js`.
+
