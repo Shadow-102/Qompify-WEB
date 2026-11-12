@@ -2,4 +2,8 @@
 // `anonKey` (nebo nový „publishable“ klíč) je určený pro prohlížeč, klidně leží v repozitáři.
 // NIKDY sem nevkládej klíč „service_role“ ani „secret“.
 // Dokud jsou obě hodnoty prázdné, běží místní testovací přihlášení (bez zabezpečení). Po vyplnění se přihlašuje e-mailem a heslem přes Supabase.
-export const SUPABASE = { url: '', anonKey: '' };
+export const SUPABASE = {
+  url: 'https://tmanxialskcfoaalsquy.supabase.co',
+  anonKey: '…paste your anon / publishable key here…',
+  aiFunction: 'smart-processor',
+};
