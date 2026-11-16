@@ -4,6 +4,6 @@
 // Dokud jsou obě hodnoty prázdné, běží místní testovací přihlášení (bez zabezpečení). Po vyplnění se přihlašuje e-mailem a heslem přes Supabase.
 export const SUPABASE = {
   url: 'https://tmanxialskcfoaalsquy.supabase.co',
-  anonKey: '…paste your anon / publishable key here…',
+  anonKey: 'sb_publishable_PASTE_HERE',
   aiFunction: 'smart-processor',
 };
