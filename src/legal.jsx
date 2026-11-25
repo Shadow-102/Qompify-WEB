@@ -1,13 +1,11 @@
 // Qompify — O nás, právní stránky, cookie oznámení, smazání dat. Stránky se zobrazují jako běžné záložky (hash routa #/onas, #/ochrana-udaju …).
 import { useEffect, useState } from 'react'
 import { Head } from './extra.jsx'
-import { REMOTE } from './auth.js'
-import { AI_ON } from './ai.js'
 import './legal.css'
 
 const UPDATED = '4. 11. 2026'
 
-const KEY = { saved: 'qompify.saved.v1', alerts: 'qompify.alerts.v1', consent: 'qompify.consent.v1', fx: 'qompify.fx.v1', session: 'qompify.session.v1', theme: 'qompify.theme.v1' }
+const KEY = { saved: 'qompify.saved.v1', alerts: 'qompify.alerts.v1', consent: 'qompify.consent.v1', fx: 'qompify.fx.v1', theme: 'qompify.theme.v1' }
 const store = {
   get: (k) => { try { return localStorage.getItem(k) } catch { return null } },
   set: (k, v) => { try { localStorage.setItem(k, v) } catch { /* úložiště nedostupné */ } },
@@ -28,7 +26,7 @@ function MyData() {
     a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }))
     a.download = 'qompify-moje-data.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000)
   }
-  const wipe = () => { [...store.keys(), KEY.session].forEach(store.del); setN({ saved: 0, alerts: 0, keys: 0 }); setAsk(false); setDone(true) }
+  const wipe = () => { store.keys().forEach(store.del); setN({ saved: 0, alerts: 0, keys: 0 }); setAsk(false); setDone(true) }
   return (
     <>
       <p>Qompify nemá uživatelské účty a na server nic neposílá. Všechno, co si uložíš, leží jen v tomto prohlížeči. Tady to můžeš vidět, stáhnout a smazat.</p>
@@ -68,7 +66,7 @@ const PAGES = {
         'Asistent sestavy je ve velmi rané beta verzi. Odpovídá jen z dat katalogu a umí se spletnout.',
       ]} />
       <H>Co Qompify není</H>
-      <p>Není e-shop a nic neprodává. Přihlášení je zatím jen zkušební a probíhá přímo v tvém prohlížeči, žádné účty na serveru nevedeme a osobní údaje nesbíráme. Odkazy vedou do obchodů, kde nákup dokončíš. Z nákupů přes ně zatím nemáme žádnou provizi. Kdybychom partnerské odkazy zavedli, označíme je a doplníme tuto stránku.</p>
+      <p>Není e-shop a nic neprodává. Žádné účty nevedeme a osobní údaje nesbíráme. Odkazy vedou do obchodů, kde nákup dokončíš. Z nákupů přes ně zatím nemáme žádnou provizi. Kdybychom partnerské odkazy zavedli, označíme je a doplníme tuto stránku.</p>
       <p>Web běží na GitHub Pages. <a href="#/ochrana-udaju">Jak nakládáme s údaji</a></p>
     </>
   )],
@@ -77,14 +75,9 @@ const PAGES = {
       <p>Platí nařízení GDPR a zákon č. 110/2019 Sb.</p>
       <H>Co zpracováváme</H>
       <p>Qompify neshromažďuje osobní údaje návštěvníků. Nemá veřejnou registraci, analytiku ani reklamu. Sestavy a hlídané ceny zůstávají jen v úložišti tvého prohlížeče.</p>
-      {REMOTE
-        ? <p>Přístup na web je omezený na pozvané uživatele. Přihlášení zajišťuje služba Supabase: při přihlášení se tam zpracuje e-mail, heslo (uložené pouze jako hash) a IP adresa. V prohlížeči se uloží přihlašovací relace.</p>
-        : <p>Přístup na web je zatím zkušebně omezený. Přihlášení se ověřuje přímo v prohlížeči: jméno ani heslo se nikam neodesílají a uloží se jen jméno účtu a čas přihlášení.</p>}
       <H>Třetí strany, které mohou získat tvou IP adresu</H>
       <L items={[
         'GitHub Pages: web běží na hostingu GitHubu, který může běžně zaznamenávat přístupy (IP adresa, čas, prohlížeč).',
-        ...(REMOTE ? ['Supabase: zajišťuje přihlášení a při něm vidí e-mail a IP adresu přihlašované osoby.'] : []),
-        ...(AI_ON ? ['Google (Gemini): když se zeptáš asistenta na něco, co umí jen umělá inteligence, odešle se přes Supabase tvůj dotaz, krátká historie chatu a popis tvé sestavy službě Google Gemini. Do dotazů nepiš osobní údaje.'] : []),
         'Písmo Manrope je součástí webu a nenačítá se od žádné třetí strany, takže jeho zobrazení nikomu nepředává tvou IP adresu.',
         'Obchody: po kliknutí na odkaz do e-shopu (Alza, Datart, Mironet, TS Bohemia, CZC.cz) se řídíš jejich zásadami.',
       ]} />
@@ -128,7 +121,6 @@ const PAGES = {
       <dl className="qlg-dl">
         <div><dt>qompify.saved.v1</dt><dd>Uložené sestavy. Zůstávají, dokud je nesmažeš.</dd></div>
         <div><dt>qompify.alerts.v1</dt><dd>Hlídané ceny a cílové částky.</dd></div>
-        <div><dt>qompify.session.v1</dt><dd>Přihlašovací relace (e-mail a tokeny od přihlašovací služby, u zkušebního režimu jméno účtu). Uloží se do trvalého úložiště, když necháš „Zůstat přihlášen“, jinak jen do relace prohlížeče. Odhlášením se smaže.</dd></div>
         <div><dt>qompify.theme.v1</dt><dd>Zapamatuje si zvolený vzhled (světlý nebo tmavý).</dd></div>
         <div><dt>qompify.fx.v1</dt><dd>Zapamatuje si, že jsi vypnul efekty pozadí.</dd></div>
         <div><dt>qompify.consent.v1</dt><dd>Zapamatuje, že jsi zavřel oznámení o úložišti.</dd></div>
@@ -175,7 +167,7 @@ export function CookieNotice() {
   if (!show) return null
   return (
     <div className="qlg-cookie" role="region" aria-label="Oznámení o úložišti prohlížeče">
-      <p>Qompify nepoužívá cookies ani analytiku. Přihlášení, sestavy a hlídané ceny zůstávají jen v tvém prohlížeči. <a href="#/cookies">Podrobnosti</a></p>
+      <p>Qompify nepoužívá cookies ani analytiku. Sestavy a hlídané ceny zůstávají jen v tvém prohlížeči. <a href="#/cookies">Podrobnosti</a></p>
       <button className="qlg-btn" onClick={() => { store.set(KEY.consent, '1'); setShow(false) }}>Rozumím</button>
     </div>
   )

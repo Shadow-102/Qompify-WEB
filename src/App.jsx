@@ -7,7 +7,6 @@ import { Assistant } from './assistant.jsx';
 import { InfoPage, INFO, LegalLinks } from './legal.jsx';
 import { Price } from './price.jsx';
 import { Words, Trace, FxToggle, ThemeToggle } from './fx.jsx';
-import { useAuth, signOut } from './auth.js';
 
 const NAV = [['builder', 'Stavitel PC'], ['namiru', 'Na míru'], ['porovnat', 'Porovnat'], ['benchmarky', 'Benchmarky'], ['sestavy', 'Sestavy'], ['katalog', 'Katalog'], ['clanky', 'Články'], ['komunita', 'Komunita'], ['onas', 'O nás']];
 const AKEY = 'qompify.alerts.v1';
@@ -311,7 +310,7 @@ export default function App() {
     };
     addEventListener('keydown', f); return () => removeEventListener('keydown', f);
   }, [page]);
-  const user = useAuth(), [cmp, setCmp] = useState([]), [view, setView] = useState(null);
+  const [cmp, setCmp] = useState([]), [view, setView] = useState(null);
   const toggle = id => setCmp(c => (c.includes(id) ? c.filter(x => x !== id) : c.length && BY[c[0]].cat !== BY[id].cat ? [id] : [...c, id].slice(-3)));
   const ui = { cmp, toggle, show: ids => setView(ids) };
   return (
@@ -322,7 +321,6 @@ export default function App() {
             <a className="brand" href="#/builder"><img src={logo} alt="" /><span>Qompify</span></a>
             <Tabs page={page} badge={saved.length} />
             <ThemeToggle icon />
-            <button className="who" onClick={signOut} title={`Přihlášen: ${user}`} aria-label={`Odhlásit se (přihlášen ${user})`}>Odhlásit</button>
           </div>
         </header>
         {hit.length > 0 && <div className="banner" role="status">Cena klesla: {hit.map(([id, al]) => `${dn(LOOK[id])} (${fmt(best(LOOK[id]).price)}, cíl ${fmt(al.target)})`).join(' · ')}</div>}

@@ -69,29 +69,17 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - **Odstraněna stránka Provozovatel úplně** (včetně řádku v patičce a části na stránce O nás).
 - **Nový článek:** Alza Black Friday 2026 a PC hardware, postavený na datech z Hlídače shopů. Data vznikla skriptem `scripts/alza-bf.py` (viz hlavička souboru) a leží v `src/alzabf.json`.
 
-### Supabase: zapnutí přihlášení
-1. Supabase → **Authentication → Sign In / Providers → Email**: nech zapnuté a vypni **Allow new users to sign up** (účty zakládáš jen ty).
-2. **Authentication → Users → Add user → Create new user**: zadej e-mail a heslo a zaškrtni *Auto Confirm User*.
-3. **Authentication → URL Configuration**: Site URL nastav na `https://shadow-102.github.io/Qompify-WEB/`.
-4. **Project Settings → API**: zkopíruj *Project URL* a klíč *anon* (nebo *publishable*) do `src/config.js`. Klíč `service_role` / `secret` sem nikdy nevkládej.
-5. `npm run build`, commit, push. Od té chvíle se přihlašuje e-mailem a heslem a místní zkušební účet přestane fungovat.
-6. Doporučeno: v SQL Editoru spusť `supabase/keepalive.sql` a v GitHubu přidej secrets `SUPABASE_URL` a `SUPABASE_ANON_KEY`, aby se bezplatný projekt po týdnu nepozastavil.
-
 ## Verze 2.3.0
 - **Gemini v asistentovi.** Asistent dál odpovídá sám tam, kde to umí přesně (ceny, kompatibilita, nejlepší poměr cena/výkon). Na obecné otázky o hardwaru, které nezná, odpoví Gemini a označí to „AI · Gemini“. Mimo téma odmítne větou „S touto žádostí neumím pomoci.“ AI funguje jen v režimu Supabase a jen pro přihlášeného uživatele.
 - **Klíč k Gemini není na webu.** Je uložený jako tajný klíč v Supabase a volá ho jen Edge Function `supabase/functions/gemini/index.ts`, kterou smí použít jen přihlášený uživatel. Do `src/` ani do repozitáře žádný klíč nepatří.
 - **Každá stránka má vlastní příchod** (zvedne se, vplyne zprava, odkryje se kruhem, rozevře jako vějíř, padá shora, skládá se, vyskakuje, odkrývá po řádcích, vjíždí jako list) a **tekutější sklo**: světelný přejezd přes skleněné karty, lesk, tekuté stlačení skleněné čočky v liště.
 
-### Gemini: nasazení (jednorázově)
-1. V Google AI Studiu **zruš klíč, který jsi vložil do chatu, a vytvoř nový**. Nastav si tam i limit útraty nebo kvóty.
-2. Supabase → **Edge Functions → Deploy a new function** → název `gemini` → vlož obsah `supabase/functions/gemini/index.ts` → Deploy. (Nebo přes CLI: `supabase functions deploy gemini`.) Kontrolu JWT nech zapnutou.
-3. Supabase → **Edge Functions → Secrets** → přidej `GEMINI_API_KEY` (nový klíč). Volitelně `GEMINI_MODEL` (výchozí `gemini-3.5-flash`, jiný název zjistíš v AI Studiu), `ALLOWED_ORIGIN` (výchozí `https://shadow-102.github.io`) a `AI_DAILY_LIMIT` (výchozí 100 dotazů na uživatele a den).
-4. Hotovo, web se nemusí znovu sestavovat. Zkus se přihlásit a zeptat asistenta třeba „Kolik VRAM potřebuju na 1440p?“.
+## Verze 2.4.0
+- **Přihlášení je pryč.** Web se otevře rovnou na sestavovači, bez přihlašovací brány, bez tlačítka Odhlásit a bez Supabase.
+- **AI (Gemini) je vypnutá.** Fungovala jen pro přihlášené. Asistent odpovídá jen z dat katalogu a na vše ostatní napíše „S touto žádostí neumím pomoci.“ Z textů o ochraně údajů zmizel Supabase i Google.
+- Smazáno: `src/auth.js`, `src/auth.jsx`, `src/ai.js`, `src/config.js`, `src/sha256.js`, složka `supabase/` a workflow `supabase-keepalive.yml`. Kořen aplikace je nově `src/root.jsx`.
 
-### Když AI nefunguje
-Asistent teď napíše, co přesně je špatně. Nejčastější příčiny:
-- **„Funkce AI nebyla nalezena“**: v Supabase → Edge Functions se funkce volá poslední částí adresy (`…/functions/v1/TOTO`), ne zobrazovaným názvem. Tu část vlož do `src/config.js` jako `aiFunction`, spusť `npm run build` a nahraj.
-- **„Server odmítl přihlášení (401)“**: u funkce vypni volbu *Verify JWT*. Funkce si přihlášení ověřuje sama a vestavěná kontrola neumí novější typ klíčů Supabase.
-- **„Gemini vrátilo chybu 404 / 400“**: špatný model nebo klíč. Přidej secret `GEMINI_MODEL` (třeba `gemini-flash-latest`) nebo zkontroluj `GEMINI_API_KEY`.
-- **Asistent jen píše „S touto žádostí neumím pomoci“ a AI se nikdy nezeptá**: web běží v místním režimu, protože `url` a `anonKey` v `src/config.js` jsou prázdné (viz Supabase výše). Příkaz `rsync` z nasazení ti může `src/config.js` přepsat prázdným. Proto ho spouštěj s `--exclude src/config.js`.
-
+### Co zrušit mimo repozitář
+1. V Google AI Studiu **zruš klíč ke Gemini, který jsi vložil do chatu** (Get API key → smazat).
+2. V Supabase smaž Edge Function `smart-processor` a secret `GEMINI_API_KEY` (nebo celý projekt, pokud ho nepotřebuješ).
+3. V GitHubu → Settings → Secrets smaž `SUPABASE_URL` a `SUPABASE_ANON_KEY`, pokud jsou nastavené.

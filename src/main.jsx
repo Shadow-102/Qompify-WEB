@@ -1,4 +1,4 @@
 import { createRoot } from 'react-dom/client';
-import Gate from './auth.jsx';
+import Root from './root.jsx';
 import './styles.css';
-createRoot(document.getElementById('root')).render(<Gate />);
+createRoot(document.getElementById('root')).render(<Root />);
