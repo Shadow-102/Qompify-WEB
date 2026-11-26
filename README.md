@@ -85,6 +85,10 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - **Opraveno:** na stránce Moje data zmizely zbytky po přihlášení („Budeš vyzván k novému přihlášení“, „Smazáním se také odhlásíš“).
 - Stránka Cookies uvádí nový klíč `qompify.intro.v1` (sessionStorage). Moje data ho také maže.
 
+## Verze 2.5.1
+- **Nová, plynulejší úvodní animace.** Logo Q se nejdřív složí uprostřed (rámeček, otevření, vnitřní čtverec, zasunutí úchytu), pak plynule odjede na své místo. Zároveň připlují vlny, odkryjí se spoje, oblouky a tečky, písmena OMPIFY vyjedou jedno po druhém a přes nápis přejede lesk. Celé to trvá asi 3,4 s.
+- **Proč je plynulejší:** každá část scény je samostatná vrstva a animuje se jen posun, zvětšení a průhlednost, které počítá grafický čip. Kreslení čar přes `stroke-dashoffset` je pryč a „kreslení“ teď dělá odkrývání vrstvy.
+
 ### Co zrušit mimo repozitář
 1. V Google AI Studiu **zruš klíč ke Gemini, který jsi vložil do chatu** (Get API key → smazat).
 2. V Supabase smaž Edge Function `smart-processor` a secret `GEMINI_API_KEY` (nebo celý projekt, pokud ho nepotřebuješ).

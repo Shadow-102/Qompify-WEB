@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import './intro.css';
 
 const KEY = 'qompify.intro.v1';
-const HOLD = 2900, OUT = 700;
+const HOLD = 3400, OUT = 800;
 
 // Spoje vpravo nahoře: jedna lomená čára, z ní 6 rovnoběžek se soustřednými zaobleními.
 const BASE = [[1000, -42], [1365, 155], [1625, 105], [1728, 400], [1915, 580], [2160, 606]];
@@ -89,6 +89,43 @@ export function Scene({ still }) {
   );
 }
 
+// Úvod pro animaci: každá část scény je vlastní HTML vrstva, pohybuje se jen transform a opacity (plynulé i v Safari).
+// Vrstva = výřez scény 2000 × 1125 umístěný v procentech; uvnitř SVG se stejnými souřadnicemi jako Scene.
+const pct = (v, of) => (v / of) * 100 + '%';
+const Layer = ({ box: [x, y, w, h], className, children }) => (
+  <div className={'qi-l ' + className} style={{ left: pct(x, 2000), top: pct(y, 1125), width: pct(w, 2000), height: pct(h, 1125) }}>
+    <div className="qi-in">
+      <svg viewBox={`${x} ${y} ${w} ${h}`} preserveAspectRatio="none">{children}</svg>
+    </div>
+  </div>
+);
+const WM = [733, Y0, 1025, Y1 - Y0];
+const MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='${WM.join(' ')}' preserveAspectRatio='none'>${LETTERS.flat().map(([x, y, w, h]) => `<rect x='${x}' y='${y}' width='${w}' height='${h}'/>`).join('')}</svg>`)}")`;
+const MARK = (d) => <svg viewBox="0 0 966 959">{d}</svg>;
+
+function Stage() {
+  return (
+    <div className="qi-stage"><div className="qi-cam">
+      <Layer box={[0, 0, 940, 240]} className="qi-b1"><defs><linearGradient id="qi-g1" x1="0" y1="0" x2="0" y2="140" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="var(--qi-ink2)" /><stop offset="1" stopColor="var(--qi-ink)" /></linearGradient></defs><path fill="url(#qi-g1)" d="M0 -40H930C850 50 775 112 690 112C565 112 470 30 355 33C220 37 70 115 0 235Z" /></Layer>
+      <Layer box={[760, 860, 1240, 265]} className="qi-b2"><defs><linearGradient id="qi-g2" x1="0" y1="900" x2="0" y2="1125" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="var(--qi-ink)" /><stop offset="1" stopColor="var(--qi-ink2)" /></linearGradient></defs><path fill="url(#qi-g2)" d="M770 1165C950 990 1125 868 1322 868C1560 868 1795 1000 2040 1060V1165Z" /></Layer>
+      <Layer box={[990, 0, 1010, 650]} className="qi-wipe qi-tr">{TRACES.map((d, i) => <path key={i} d={d} />)}</Layer>
+      <Layer box={[0, 880, 690, 245]} className="qi-wipe qi-rg">{RINGS.map((d, i) => <path key={i} d={d} />)}</Layer>
+      <Layer box={[0, 318, 115, 460]} className="qi-wipe qi-gd">{GRID.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="6.5" />)}</Layer>
+      <Layer box={[1790, 635, 210, 345]} className="qi-sc">{SCATTER.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="8" />)}</Layer>
+      <div className="qi-l qi-word" style={{ left: pct(733, 2000), top: pct(Y0, 1125), width: pct(1025, 2000), height: pct(Y1 - Y0, 1125) }}>
+        {LETTERS.map((rs, i) => <svg key={i} viewBox={WM.join(' ')} preserveAspectRatio="none" style={{ '--i': i }}>{rs.map(R)}</svg>)}
+        <div className="qi-sheen" style={{ WebkitMaskImage: MASK, maskImage: MASK }}><i /></div>
+      </div>
+      <div className="qi-l qi-logo" style={{ left: pct(220, 2000), top: pct(316, 1125), width: pct(469, 2000), height: pct(465.6, 1125) }}>
+        <div className="qi-box">{MARK(<rect className="qm-box" width="966" height="959" rx="96" />)}</div>
+        <div className="qi-hole">{MARK(<path className="qm-hole" d="M158 175Q158 160 173 160H818Q833 160 833 175V645L696 521V289H294V672H487L610 801H173Q158 801 158 786Z" />)}</div>
+        <div className="qi-sq">{MARK(<rect className="qm-box" x="294" y="289" width="402" height="383" />)}</div>
+        <div className="qi-bar">{MARK(<path className="qm-bar" d="M565 653L654 563L873 780L790 868Z" strokeLinejoin="round" strokeWidth="14" />)}</div>
+      </div>
+    </div></div>
+  );
+}
+
 const seen = () => { try { return sessionStorage.getItem(KEY) === '1' } catch { return false } };
 const calm = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false } };
 
@@ -114,7 +151,7 @@ export function Intro() {
   if (st === 'off') return null;
   return (
     <div className={'qintro' + (st === 'out' ? ' out' : '')} onClick={() => setSt('out')} role="presentation">
-      <Scene />
+      <Stage />
       <span className="qintro-sr" role="status">Qompify</span>
       <button className="qintro-skip" onClick={(e) => { e.stopPropagation(); setSt('out') }}>Přeskočit</button>
     </div>
