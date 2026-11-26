@@ -2,6 +2,7 @@
 import App from './App.jsx';
 import { Circuit } from './circuit.jsx';
 import { CookieNotice } from './legal.jsx';
+import { Intro } from './intro.jsx';
 import { usePointerGlow, useFxPref, useThemePref } from './fx.jsx';
 
 export default function Root() {
@@ -11,6 +12,7 @@ export default function Root() {
       <Circuit />
       <App />
       <CookieNotice />
+      <Intro />
     </>
   );
 }

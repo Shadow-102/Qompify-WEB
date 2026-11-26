@@ -1,0 +1,59 @@
+/* Úvodní animace a brandová scéna (prefix qintro-, qsc-, qm-). Barvy podle brandového obrázku. */
+:root{--qi-bg:#EFE2D0;--qi-ink:#5173F5;--qi-ink2:#879BEF}
+html[data-theme=dark]{--qi-bg:#0E121B;--qi-ink:#6C89FF;--qi-ink2:#2A3A86}
+
+.qm-box{fill:var(--qi-ink)}.qm-hole,.qm-bar{fill:var(--qi-bg)}.qm-bar{stroke:var(--qi-bg)}
+
+.qsc{display:block;width:100%;height:100%}
+.qsc-bg{fill:var(--qi-bg)}
+.qsc-lines path,.qsc-glint path{fill:none;stroke:var(--qi-ink);stroke-width:9;stroke-linecap:round}
+.qsc-dots circle,.qsc-word rect{fill:var(--qi-ink)}
+.qsc :is(.qsc-blob,.qsc-mark,.qsc-dots circle,.qsc-word>g,.qm-bar,.qsc-sheen){transform-box:fill-box;transform-origin:center}
+.qsc-glint path{stroke:#fff;stroke-width:5;stroke-dasharray:.035 1;stroke-dashoffset:1.035;opacity:0}
+html[data-theme=dark] .qsc-glint path{stroke:#FFB066}
+.qsc-sheen{opacity:0}
+
+/* Překryv */
+.qintro{position:fixed;inset:0;z-index:1000;background:var(--qi-bg);overflow:hidden;cursor:pointer;animation:qi-in .35s ease both}
+.qintro .qsc{animation:qi-settle 3.2s cubic-bezier(.22,1,.36,1) both}
+.qintro.out{animation:qi-out .7s cubic-bezier(.65,0,.35,1) forwards;pointer-events:none}
+.qintro.out .qsc{animation:qi-lift .7s cubic-bezier(.65,0,.35,1) forwards}
+.qintro-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.qintro-skip{position:absolute;right:20px;bottom:20px;font:600 13px/1 inherit;font-family:inherit;color:var(--qi-ink);background:color-mix(in srgb,var(--qi-bg) 70%,transparent);border:1.5px solid color-mix(in srgb,var(--qi-ink) 35%,transparent);border-radius:99px;padding:9px 16px;cursor:pointer;opacity:0;animation:qi-fade .5s ease 1s forwards}
+.qintro-skip:hover{border-color:var(--qi-ink)}.qintro-skip:focus-visible{outline:2px solid var(--qi-ink);outline-offset:3px}
+
+/* Choreografie (ms): vlny 0–900, spoje a oblouky 150–1500, tečky 300–1100, logo 350–1150, písmena 800–1500, lesk 1650–2350 */
+.qintro .b1{animation:qi-blob1 1.1s cubic-bezier(.22,1,.36,1) both,qi-float 6s ease-in-out 1.1s infinite alternate}
+.qintro .b2{animation:qi-blob2 1.2s cubic-bezier(.22,1,.36,1) .08s both,qi-float 7s ease-in-out 1.3s infinite alternate-reverse}
+.qintro .qsc-lines path{stroke-dasharray:1;stroke-dashoffset:1;animation:qi-draw 1.25s cubic-bezier(.65,0,.35,1) calc(.15s + var(--i)*.07s) forwards}
+.qintro .qsc-lines .ring{animation-delay:calc(.3s + var(--i)*.08s)}
+.qintro .qsc-glint path{animation:qi-glint 1.6s cubic-bezier(.45,0,.2,1) calc(1.45s + var(--i)*.09s) forwards}
+.qintro .qsc-dots circle{animation:qi-pop .55s cubic-bezier(.34,1.56,.64,1) calc(.3s + var(--i)*.04s) both}
+.qintro .qsc-dots .sc{animation-delay:calc(.75s + var(--i)*.06s)}
+.qintro .qsc-mark{animation:qi-mark 1s cubic-bezier(.34,1.4,.5,1) .35s both}
+.qintro .qsc-mark .qm-hole{animation:qi-fade .4s ease .55s both}
+.qintro .qsc-mark .qm-bar{animation:qi-bar .7s cubic-bezier(.22,1,.36,1) .85s both}
+.qintro .qsc-word>g{animation:qi-rise .8s cubic-bezier(.22,1,.36,1) calc(.8s + var(--i)*.07s) both}
+.qintro .qsc-sheen{animation:qi-sheen 1s cubic-bezier(.45,0,.25,1) 1.65s both}
+
+@keyframes qi-in{from{opacity:0}}
+@keyframes qi-out{to{opacity:0}}
+@keyframes qi-settle{from{transform:scale(1.035)}}
+@keyframes qi-lift{to{transform:scale(1.05)}}
+@keyframes qi-fade{from{opacity:0}to{opacity:1}}
+@keyframes qi-blob1{from{transform:translate3d(-18%,-60%,0) scale(.9)}}
+@keyframes qi-blob2{from{transform:translate3d(14%,70%,0) scale(.92)}}
+@keyframes qi-float{to{transform:translate3d(1.2%,1.5%,0) scale(1.015)}}
+@keyframes qi-draw{to{stroke-dashoffset:0}}
+@keyframes qi-glint{0%{opacity:0;stroke-dashoffset:1.035}12%{opacity:1}88%{opacity:1}100%{opacity:0;stroke-dashoffset:0}}
+@keyframes qi-pop{from{opacity:0;transform:scale(0)}}
+@keyframes qi-mark{from{opacity:0;transform:scale(.55) rotate(-12deg)}}
+@keyframes qi-bar{from{opacity:0;transform:translate3d(-26%,-26%,0)}}
+@keyframes qi-rise{from{transform:translate3d(0,110%,0)}}
+@keyframes qi-sheen{0%{opacity:1;transform:translate3d(0,0,0) skewX(-18deg)}100%{opacity:1;transform:translate3d(1250px,0,0) skewX(-18deg)}}
+
+/* Statická scéna (O nás): jen jemný pohyb, žádná choreografie */
+.qsc.still .b1{animation:qi-float 7s ease-in-out infinite alternate}
+.qsc.still .b2{animation:qi-float 8s ease-in-out infinite alternate-reverse}
+.qsc.still .qsc-glint path{animation:qi-glint 3.2s cubic-bezier(.45,0,.2,1) calc(var(--i)*.5s) infinite}
+html.lite .qsc.still *{animation:none!important}

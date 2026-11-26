@@ -1,0 +1,53 @@
+/* Stránka O nás (prefix qab-) */
+.qab{padding:48px 0 8px}
+.qab-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:44px;align-items:center}
+.qab-eye{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.qab-hero h1{font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.02;letter-spacing:-.045em;font-weight:800;margin:12px 0 0;max-width:13ch}
+.qab-copy>p{font-size:17.5px;line-height:1.55;color:var(--mu);max-width:52ch;margin:18px 0 0}
+.qab .qab-beta{color:var(--ink);font-size:15px;border-left:3px solid var(--warn);background:var(--warn-s);padding:10px 14px;border-radius:0 12px 12px 0}
+.qab-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.qab-btn{display:inline-flex;align-items:center;border:0;border-radius:99px;padding:12px 22px;font:inherit;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer;background:var(--accent);color:var(--on-accent);transition:transform .18s var(--ease),opacity .2s}
+.qab-btn:hover{opacity:.9}.qab-btn:active{transform:scale(.97)}
+.qab-btn.alt{background:var(--soft);color:var(--ink)}
+.qab-btn:focus-visible,.qab a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.qab-art{margin:0;aspect-ratio:16/9;border-radius:var(--r3);overflow:hidden;box-shadow:0 1px 0 var(--hi) inset,0 30px 60px -30px rgba(var(--shadow-c),.45);border:1px solid var(--card-b);transform:translateZ(0)}
+
+.qab-stats{list-style:none;padding:0;margin:44px 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.qab-stats li{background:var(--card);border:1px solid var(--card-b);border-radius:var(--r2);padding:18px 20px;box-shadow:var(--rim)}
+.qab-stats b{display:block;font-size:clamp(1.9rem,3.6vw,2.6rem);font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.qab-stats span{display:block;margin-top:6px;color:var(--mu);font-size:14px;font-weight:600}
+
+.qab-sec{margin-top:56px}
+.qab-sec>h2,.qab-card h2{font-size:clamp(1.4rem,2.4vw,1.85rem);letter-spacing:-.03em;margin:0 0 18px}
+.qab-card{background:var(--card);border:1px solid var(--card-b);border-radius:var(--r2);padding:24px;box-shadow:var(--rim),0 10px 22px -16px rgba(var(--shadow-c),.16)}
+.qab-card h3{font-size:17px;margin:0 0 6px;letter-spacing:-.015em}
+.qab-card p{margin:0;color:var(--mu);line-height:1.55}
+
+.qab-steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;counter-reset:none}
+.qab-steps li{display:flex;flex-direction:column}
+.qab-steps p{flex:1}
+.qab-num{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.04em;margin-bottom:14px;display:inline-grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--accent-s)}
+.qab-steps a{margin-top:16px;color:var(--accent);font-weight:700;font-size:14.5px;text-decoration:none}
+.qab-steps a span{display:inline-block;transition:transform .2s var(--ease)}
+.qab-steps a:hover span{transform:translateX(4px)}
+
+.qab-who{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.qab-split{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;align-items:start}
+.qab-legend{margin:0 0 14px}
+.qab-legend div{display:flex;gap:14px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
+.qab-legend dt{flex:0 0 104px}.qab-legend dd{margin:0;line-height:1.5}
+.qab-split ul{padding-left:20px;margin:12px 0 0;color:var(--mu);line-height:1.55}.qab-split li{margin:8px 0}
+.qab-not p+p{margin-top:12px}
+.qab-not a{color:var(--accent);text-underline-offset:3px}
+.qab+.qlg-nav{margin-top:48px}
+
+/* Příchod stránky */
+.view[data-page=onas] .qab-copy>*{animation:fx-line .78s var(--ease) backwards}
+.view[data-page=onas] .qab-copy>:nth-child(2){animation-delay:.07s}.view[data-page=onas] .qab-copy>:nth-child(3){animation-delay:.14s}.view[data-page=onas] .qab-copy>:nth-child(4){animation-delay:.21s}.view[data-page=onas] .qab-copy>:nth-child(5){animation-delay:.28s}
+.view[data-page=onas] .qab-art{animation:qab-art 1s var(--ease) .1s backwards}
+.view[data-page=onas] .qab-stats li{animation:fx-pop .7s var(--spring) backwards}
+.view[data-page=onas] .qab-stats li:nth-child(2){animation-delay:.06s}.view[data-page=onas] .qab-stats li:nth-child(3){animation-delay:.12s}.view[data-page=onas] .qab-stats li:nth-child(4){animation-delay:.18s}
+@keyframes qab-art{from{opacity:0;transform:translate3d(0,24px,0) scale(.96)}}
+
+@media(max-width:900px){.qab-hero,.qab-split{grid-template-columns:1fr}.qab-hero{gap:28px}.qab-stats,.qab-steps{grid-template-columns:repeat(2,1fr)}.qab-who{grid-template-columns:1fr}}
+@media(max-width:480px){.qab{padding-top:32px}.qab-stats li{padding:14px 16px}.qab-steps{grid-template-columns:1fr}.qab-legend div{flex-direction:column;gap:6px}.qab-legend dt{flex:none}}

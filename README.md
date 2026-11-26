@@ -79,6 +79,12 @@ Historie cen se skládá z denních záznamů; dokud nejsou aspoň 3 dny, graf p
 - **AI (Gemini) je vypnutá.** Fungovala jen pro přihlášené. Asistent odpovídá jen z dat katalogu a na vše ostatní napíše „S touto žádostí neumím pomoci.“ Z textů o ochraně údajů zmizel Supabase i Google.
 - Smazáno: `src/auth.js`, `src/auth.jsx`, `src/ai.js`, `src/config.js`, `src/sha256.js`, složka `supabase/` a workflow `supabase-keepalive.yml`. Kořen aplikace je nově `src/root.jsx`.
 
+## Verze 2.5.0
+- **Úvodní animace.** Při prvním otevření webu v relaci se složí brandová scéna: vlny, spoje, oblouky, tečky, logo Q a nápis OMPIFY, na závěr přejede přes nápis lesk. Trvá asi 3 s, jde přeskočit kliknutím, klávesou nebo tlačítkem Přeskočit. Při omezeném pohybu (prefers-reduced-motion) se nespustí. Scéna je vektorová (`src/intro.jsx`, `src/intro.css`), ne obrázek, takže je ostrá a nezvětšuje balík. Má světlou i tmavou verzi.
+- **Nová stránka O nás** (`src/about.jsx`, `src/about.css`): úvod s brandovou scénou a tlačítkem Přehrát úvod, čísla počítaná z katalogu, kroky „Jak to funguje“ s odkazy, „Pro koho je“, legenda štítků Ověřeno / Orientační a „Co Qompify není“.
+- **Opraveno:** na stránce Moje data zmizely zbytky po přihlášení („Budeš vyzván k novému přihlášení“, „Smazáním se také odhlásíš“).
+- Stránka Cookies uvádí nový klíč `qompify.intro.v1` (sessionStorage). Moje data ho také maže.
+
 ### Co zrušit mimo repozitář
 1. V Google AI Studiu **zruš klíč ke Gemini, který jsi vložil do chatu** (Get API key → smazat).
 2. V Supabase smaž Edge Function `smart-processor` a secret `GEMINI_API_KEY` (nebo celý projekt, pokud ho nepotřebuješ).
